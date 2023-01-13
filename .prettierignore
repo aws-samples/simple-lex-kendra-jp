@@ -1,0 +1,8 @@
+**/*.json
+**/*.md
+**/node_modules
+**/build
+
+/cdk.out
+/docs
+/faq

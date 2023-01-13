@@ -1,0 +1,11 @@
+.blink {
+  animation: blinkAnime 1s ease-in-out infinite alternate;
+}
+@keyframes blinkAnime {
+  0% {
+    color: #9b9b9b;
+  }
+  100% {
+    color: rgba(0, 0, 0, 0);
+  }
+}

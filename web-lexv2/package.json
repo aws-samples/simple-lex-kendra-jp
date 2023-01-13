@@ -1,0 +1,57 @@
+{
+  "name": "web-lexv2",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@aws-sdk/client-kendra": "^3.236.0",
+    "@aws-sdk/client-lex-runtime-v2": "^3.234.0",
+    "@aws-sdk/client-s3": "^3.236.0",
+    "@aws-sdk/client-transcribe-streaming": "^3.234.0",
+    "@aws-sdk/credential-providers": "^3.236.0",
+    "@aws-sdk/s3-request-presigner": "^3.236.0",
+    "@fortawesome/fontawesome-svg-core": "^6.2.1",
+    "@fortawesome/free-solid-svg-icons": "^6.2.1",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@types/node": "^16.18.10",
+    "@types/react": "^18.0.26",
+    "@types/react-dom": "^18.0.9",
+    "buffer": "^6.0.3",
+    "microphone-stream": "^6.0.1",
+    "process": "^0.11.10",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "readable-stream": "^4.2.0",
+    "stream-browserify": "^3.0.0",
+    "typescript": "^4.9.4",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/readable-stream": "^2.3.15",
+    "autoprefixer": "^10.4.13",
+    "postcss": "^8.4.20",
+    "tailwindcss": "^3.2.4"
+  }
+}
