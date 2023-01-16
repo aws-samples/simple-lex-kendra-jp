@@ -27,6 +27,14 @@ export class SimpleLexV2Stack extends cdk.Stack {
           INDEX_ID: props.kendraIndex.ref,
           REGION: this.region,
         },
+        depsLockFilePath: './lambda/package-lock.json',
+        bundling: {
+          commandHooks: {
+            beforeBundling: (i, __) => [`cd ${i} && npm ci`],
+            afterBundling: (_, __) => [],
+            beforeInstall: (_, __) => [],
+          },
+        },
       }
     );
 

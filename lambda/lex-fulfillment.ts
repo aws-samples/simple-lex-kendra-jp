@@ -1,5 +1,4 @@
 import * as lambda from 'aws-lambda';
-import { LexV2Result } from 'aws-lambda';
 import { KendraClient, QueryCommand } from '@aws-sdk/client-kendra';
 
 const INDEX_ID = process.env.INDEX_ID;
@@ -74,7 +73,7 @@ exports.handler = async (
   const response = {
     sessionState,
     messages,
-  } as LexV2Result;
+  } as lambda.LexV2Result;
 
   return response;
 };
