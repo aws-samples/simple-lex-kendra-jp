@@ -153,6 +153,14 @@ export class SimpleKendraStack extends cdk.Stack {
         INDEX_ID: index.ref,
         REGION: this.region,
       },
+      depsLockFilePath: './lambda/package-lock.json',
+      bundling: {
+        commandHooks: {
+          beforeBundling: (i, __) => [`cd ${i} && npm ci`],
+          afterBundling: (_, __) => [],
+          beforeInstall: (_, __) => [],
+        },
+      },
     });
 
     // Lambda から Kendra を呼び出せるように権限を付与
