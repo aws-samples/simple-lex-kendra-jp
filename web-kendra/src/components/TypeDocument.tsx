@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { TextWithHighlights } from '@aws-sdk/client-kendra';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile } from '@fortawesome/free-solid-svg-icons';
@@ -16,19 +16,8 @@ interface TypeDocumentProps {
 }
 
 function TypeDocument(props: TypeDocumentProps) {
-  const [title, setTitle] = useState<TextWithHighlights>({
-    Text: '',
-    Highlights: [],
-  });
-  const [body, setBody] = useState<TextWithHighlights>({
-    Text: '',
-    Highlights: [],
-  });
-
-  useEffect(() => {
-    setTitle(props.item.DocumentTitle || { Text: '', Highlights: [] });
-    setBody(props.item.DocumentExcerpt || { Text: '', Highlights: [] });
-  }, [props]);
+  const title: TextWithHighlights = props.item.DocumentTitle || { Text: '', Highlights: [] };
+  const body: TextWithHighlights = props.item.DocumentExcerpt || { Text: '', Highlights: [] };
 
   const downloadFile = async (event: any): Promise<void> => {
     const bucket_keys = new URL(props.item.DocumentURI!).pathname.split('/');
@@ -43,8 +32,8 @@ function TypeDocument(props: TypeDocumentProps) {
     });
 
     const contentType = key.endsWith('.txt')
-      ? 'text/plain; charset=utf-8'
-      : undefined;
+                      ? 'text/plain; charset=utf-8'
+                      : undefined;
 
     const getObject = new GetObjectCommand({
       Bucket: bucket,

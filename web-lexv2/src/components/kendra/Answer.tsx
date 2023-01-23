@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { QueryResultItem } from '@aws-sdk/client-kendra';
 import clipHighlight from './clipHighlight';
 
@@ -7,16 +7,8 @@ interface AnswerProps {
 }
 
 function Answer(props: AnswerProps) {
-  const [highlight, setHighlight] = useState('');
-
-  useEffect(() => {
-    setHighlight(
-      clipHighlight(
-        props.item.AdditionalAttributes?.find((a) => a.Key === 'AnswerText')
-          ?.Value?.TextWithHighlightsValue || { Text: '', Highlights: [] }
-      )
-    );
-  }, [props]);
+  const highlight = clipHighlight(
+    props.item.AdditionalAttributes?.find((a) => a.Key === 'AnswerText')?.Value?.TextWithHighlightsValue || { Text: '', Highlights: [] });
 
   return (
     <div>

@@ -13,7 +13,7 @@ import * as process from 'process';
 window.process = process;
 window.Buffer = Buffer;
 
-export interface TranscribeHandlerProps {
+export interface Transcripts {
   isPartial: boolean;
   transcripts: string[];
 }
@@ -22,10 +22,10 @@ interface UseTranscribeStreamingProps {
   languageCode: string;
   identityPoolId: string;
   region: string;
-  transcriptsHandler: (transcripts: TranscribeHandlerProps[]) => Promise<void>;
 }
 
 function useTranscribeStreaming(props: UseTranscribeStreamingProps) {
+  const [transcripts, setTranscripts] = useState<Transcripts[]>([]);
   const [recording, setRecording] = useState(false);
   const [micStream, setMicStream] = useState<MicrophoneStream | null>(null);
 
@@ -95,17 +95,15 @@ function useTranscribeStreaming(props: UseTranscribeStreamingProps) {
         if (event.TranscriptEvent) {
           const results = event!.TranscriptEvent!.Transcript!.Results!.map(
             (r) => {
-              const transcripts = r.Alternatives!.map((a) => a.Transcript!);
-
               return {
                 isPartial: r.IsPartial!,
-                transcripts: transcripts,
+                transcripts: r.Alternatives!.map((a) => a.Transcript!),
               };
             }
           );
 
           if (results.length > 0) {
-            await props.transcriptsHandler(results);
+            setTranscripts(results);
           }
         }
       }
@@ -116,6 +114,7 @@ function useTranscribeStreaming(props: UseTranscribeStreamingProps) {
   };
 
   return {
+    transcripts,
     recording,
     startRecording,
     stopRecording,
