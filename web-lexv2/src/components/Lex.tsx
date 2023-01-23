@@ -9,10 +9,9 @@ import {
   faComment,
 } from '@fortawesome/free-solid-svg-icons';
 import useLex, { Message, Content } from '../hooks/useLex';
-import useTranscribeStreaming, {
-  TranscribeHandlerProps,
-} from '../hooks/useTranscribeStreaming';
+import useTranscribeStreaming from '../hooks/useTranscribeStreaming';
 import KendraContent from './KendraContent';
+import { useForm } from 'react-hook-form';
 import './Lex.css';
 
 const BOT_ID = process.env.REACT_APP_BOT_ID!;
@@ -20,13 +19,17 @@ const BOT_ALIAS_ID = process.env.REACT_APP_BOT_ALIAS_ID!;
 const IDENTITY_POOL_ID = process.env.REACT_APP_IDENTITY_POOL_ID!;
 const REGION = process.env.REACT_APP_REGION!;
 
+interface Text {
+  text: string;
+}
+
 function Lex() {
   const [expanded, setExpanded] = useState(false);
   const [messagesBox, setMessagesBox] = useState<JSX.Element[]>([]);
-  const [text, setText] = useState('');
-  const [transcripts, setTranscripts] = useState<TranscribeHandlerProps[]>([]);
   const [sessionStarted, setSessionStarted] = useState(false);
   const [deletingSession, setDeletingSession] = useState(false);
+
+  const { register, handleSubmit, setValue } = useForm<Text>();
 
   const { sendText, deleteSession, messages, waiting, sessionId } = useLex({
     botId: BOT_ID,
@@ -36,16 +39,12 @@ function Lex() {
     region: REGION,
   });
 
-  const transcriptsHandler = async (transcripts: TranscribeHandlerProps[]) => {
-    setTranscripts(transcripts);
-  };
-
-  const { recording, startRecording, stopRecording } = useTranscribeStreaming({
-    languageCode: 'ja-JP',
-    identityPoolId: IDENTITY_POOL_ID,
-    region: REGION,
-    transcriptsHandler,
-  });
+  const { transcripts, recording, startRecording, stopRecording } =
+    useTranscribeStreaming({
+      languageCode: 'ja-JP',
+      identityPoolId: IDENTITY_POOL_ID,
+      region: REGION,
+    });
 
   useEffect(() => {
     (async () => {
@@ -73,20 +72,10 @@ function Lex() {
     }
   });
 
-  const handleSubmit = async (event: any) => {
-    event.preventDefault();
-
-    if (text.length === 0) {
-      return;
-    }
-
-    setText('');
-
-    await sendText(text);
-  };
-
-  const handleChangeText = (event: any) => {
-    setText(event.target.value);
+  const onSubmit = async (data: Text) => {
+    if (data.text.length === 0) return;
+    setValue('text', '');
+    await sendText(data.text);
   };
 
   const expandButton = (
@@ -204,13 +193,12 @@ function Lex() {
 
         <form
           className="grow flex flex-row items-center"
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit(onSubmit)}
         >
           <input
             className="grow h-10 rounded-tl-md rounded-bl-md border-t border-l border-b border-gray-400 px-2 focus:outline-none"
             type="text"
-            onChange={handleChangeText}
-            value={text}
+            {...register('text')}
           />
           <button
             className="bg-blue-400 hover:bg-blue-500 h-10 rounded-tr-md rounded-br-md border mr-4 px-4 border-gray-400"

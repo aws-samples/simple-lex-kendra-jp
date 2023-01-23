@@ -61,7 +61,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
       botLocales: [
         {
           localeId: 'ja_JP',
-          nluConfidenceThreshold: 0.5,
+          nluConfidenceThreshold: 0.8,
           slotTypes: [
             {
               name: 'PCTypes',

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { TextWithHighlights } from '@aws-sdk/client-kendra';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faQuestion } from '@fortawesome/free-solid-svg-icons';
@@ -10,32 +10,20 @@ interface TypeQuestionAnswerProps {
 }
 
 function TypeQuestionAnswer(props: TypeQuestionAnswerProps) {
-  const [answerTextHighlights, setAnswerTextHighlights] =
-    useState<TextWithHighlights>({ Text: '', Highlights: [] });
-  const [questionTextHighlights, setQuestionTextHighlights] =
-    useState<TextWithHighlights>({ Text: '', Highlights: [] });
-  const [documentUri, setDocumentUri] = useState('');
+  const answerText = props.item.AdditionalAttributes?.find(
+    (a) => a.Key === 'AnswerText'
+  );
+  const questionText = props.item.AdditionalAttributes?.find(
+    (a) => a.Key === 'QuestionText'
+  );
 
-  useEffect(() => {
-    setDocumentUri(props.item.DocumentURI || '');
-
-    const answerText = props.item.AdditionalAttributes?.find(
-      (a) => a.Key === 'AnswerText'
-    );
-    setAnswerTextHighlights(
-      answerText?.Value?.TextWithHighlightsValue || { Text: '', Highlights: [] }
-    );
-
-    const questionText = props.item.AdditionalAttributes?.find(
-      (a) => a.Key === 'QuestionText'
-    );
-    setQuestionTextHighlights(
-      questionText?.Value?.TextWithHighlightsValue || {
-        Text: '',
-        Highlights: [],
-      }
-    );
-  }, [props]);
+  const documentUri = props.item.DocumentURI || '';
+  const answerTextHighlights = answerText?.Value?.TextWithHighlightsValue || {
+    Text: '',
+    Highlights: [],
+  };
+  const questionTextHighlights: TextWithHighlights = questionText?.Value
+    ?.TextWithHighlightsValue || { Text: '', Highlights: [] };
 
   return (
     <div className="p-4 w-2/3 mb-3">

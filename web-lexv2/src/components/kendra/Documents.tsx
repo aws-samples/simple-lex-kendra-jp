@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { QueryResultItem } from '@aws-sdk/client-kendra';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
@@ -14,32 +14,26 @@ interface DocumentsProps {
 }
 
 function Documents(props: DocumentsProps) {
-  const [docs, setDocs] = useState<JSX.Element[]>([]);
+  const docs = props.items.map((i) => {
+    const docTitle = i.DocumentTitle?.Text || '';
+    const docText = i.DocumentExcerpt?.Text || '';
 
-  useEffect(() => {
-    const tmpDocs = props.items.map((i) => {
-      const docTitle = i.DocumentTitle?.Text || '';
-      const docText = i.DocumentExcerpt?.Text || '';
+    return (
+      <li key={i.Id} className="mb-3">
+        <div
+          className="text-xs text-blue-400 font-bold mb-2 flex items-center cursor-pointer"
+          onClick={() => downloadFile(i)}
+        >
+          <FontAwesomeIcon className="mr-1" icon={faArrowUpRightFromSquare} />
+          <div>{docTitle}</div>
+        </div>
 
-      return (
-        <li key={i.Id} className="mb-3">
-          <div
-            className="text-xs text-blue-400 font-bold mb-2 flex items-center cursor-pointer"
-            onClick={() => downloadFile(i)}
-          >
-            <FontAwesomeIcon className="mr-1" icon={faArrowUpRightFromSquare} />
-            <div>{docTitle}</div>
-          </div>
-
-          <div className="text-xs text-gray-700 p-2 border border-gray-700 rounded-md">
-            {docText}
-          </div>
-        </li>
-      );
-    });
-
-    setDocs(tmpDocs);
-  }, [props]);
+        <div className="text-xs text-gray-700 p-2 border border-gray-700 rounded-md">
+          {docText}
+        </div>
+      </li>
+    );
+  });
 
   const downloadFile = async (item: QueryResultItem): Promise<void> => {
     const bucket_keys = new URL(item.DocumentURI!).pathname.split('/');

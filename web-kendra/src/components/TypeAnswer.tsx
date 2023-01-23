@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { TextWithHighlights } from '@aws-sdk/client-kendra';
+import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faComment } from '@fortawesome/free-solid-svg-icons';
 import { QueryResultItem } from '@aws-sdk/client-kendra';
@@ -10,33 +9,25 @@ interface TypeAnswerProps {
 }
 
 function TypeAnswer(props: TypeAnswerProps) {
-  const [answer, setAnswer] = useState('');
-  const [answerTextHighlights, setAnswerTextHighlights] =
-    useState<TextWithHighlights>({ Text: '', Highlights: [] });
+  const answerText = props.item.AdditionalAttributes?.find(
+    (a) => a.Key === 'AnswerText'
+  );
 
-  useEffect(() => {
-    const answerText = props.item.AdditionalAttributes?.find(
-      (a) => a.Key === 'AnswerText'
-    );
+  const answerOffsets =
+    answerText?.Value?.TextWithHighlightsValue?.Highlights?.[0];
 
-    const answerOffsets =
-      answerText?.Value?.TextWithHighlightsValue?.Highlights?.[0];
-
-    if (answerOffsets) {
-      setAnswer(
-        answerText?.Value?.TextWithHighlightsValue?.Text?.substring(
+  const answer =
+    (answerOffsets
+      ? answerText?.Value?.TextWithHighlightsValue?.Text?.substring(
           answerOffsets.BeginOffset || 0,
           answerOffsets.EndOffset
-        ) || ''
-      );
-    } else {
-      setAnswer(answerText?.Value?.TextWithHighlightsValue?.Text || '');
-    }
+        )
+      : answerText?.Value?.TextWithHighlightsValue?.Text) || '';
 
-    setAnswerTextHighlights(
-      answerText?.Value?.TextWithHighlightsValue || { Text: '', Highlights: [] }
-    );
-  }, [props]);
+  const answerTextHighlights = answerText?.Value?.TextWithHighlightsValue || {
+    Text: '',
+    Highlights: [],
+  };
 
   return (
     <div className="p-4 w-2/3 mb-3">
