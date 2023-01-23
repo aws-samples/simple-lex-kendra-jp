@@ -16,16 +16,18 @@ function TypeAnswer(props: TypeAnswerProps) {
   const answerOffsets =
     answerText?.Value?.TextWithHighlightsValue?.Highlights?.[0];
 
-  const answer = (answerOffsets ?
-                  answerText?.Value?.TextWithHighlightsValue?.Text?.substring(
-                    answerOffsets.BeginOffset || 0,
-                    answerOffsets.EndOffset
-                  ) :
-                  answerText?.Value?.TextWithHighlightsValue?.Text
-  ) || '';
+  const answer =
+    (answerOffsets
+      ? answerText?.Value?.TextWithHighlightsValue?.Text?.substring(
+          answerOffsets.BeginOffset || 0,
+          answerOffsets.EndOffset
+        )
+      : answerText?.Value?.TextWithHighlightsValue?.Text) || '';
 
-  const answerTextHighlights =
-    answerText?.Value?.TextWithHighlightsValue || { Text: '', Highlights: [] };
+  const answerTextHighlights = answerText?.Value?.TextWithHighlightsValue || {
+    Text: '',
+    Highlights: [],
+  };
 
   return (
     <div className="p-4 w-2/3 mb-3">

@@ -25,12 +25,7 @@ function ItemList() {
   const [loading, setLoading] = useState(false);
   const [queryOnce, setQueryOnce] = useState(false);
 
-  const {
-    register,
-    watch,
-    handleSubmit,
-    setValue,
-  } = useForm<Query>();
+  const { register, watch, handleSubmit, setValue } = useForm<Query>();
 
   const watchQuery = watch('query', '');
 
@@ -43,7 +38,7 @@ function ItemList() {
     const items = await sendQuery(API_ENDPOINT, data.query);
     setItems(items);
     setLoading(false);
-  }
+  };
 
   return (
     <div className="flex flex-col items-center">
@@ -60,7 +55,7 @@ function ItemList() {
         <input
           className="focus:outline-none w-full"
           type="text"
-          {...register("query")}
+          {...register('query')}
         />
 
         {watchQuery.length > 0 && (
@@ -76,27 +71,30 @@ function ItemList() {
 
       <div className="w-full border border-b-0 border-gray-400 mb-4" />
 
-      {queryOnce && !loading && items.length === 0 && <TypeNotFound/>}
+      {queryOnce && !loading && items.length === 0 && <TypeNotFound />}
 
-      {loading && <div>
-        <FontAwesomeIcon
-          className="text-xl text-gray-400 rotate mt-4"
-          icon={faSpinner}
-        />
-      </div>}
+      {loading && (
+        <div>
+          <FontAwesomeIcon
+            className="text-xl text-gray-400 rotate mt-4"
+            icon={faSpinner}
+          />
+        </div>
+      )}
 
-      {!loading && items.map((item: QueryResultItem) => {
-        switch (item.Type) {
-          case 'DOCUMENT':
-            return <TypeDocument item={item} key={item.Id} />;
-          case 'ANSWER':
-            return <TypeAnswer item={item} key={item.Id} />;
-          case 'QUESTION_ANSWER':
-            return <TypeQuestionAnswer item={item} key={item.Id} />;
-          default:
-            return <>Unknown Type: {item.Type}</>;
-        }
-      })}
+      {!loading &&
+        items.map((item: QueryResultItem) => {
+          switch (item.Type) {
+            case 'DOCUMENT':
+              return <TypeDocument item={item} key={item.Id} />;
+            case 'ANSWER':
+              return <TypeAnswer item={item} key={item.Id} />;
+            case 'QUESTION_ANSWER':
+              return <TypeQuestionAnswer item={item} key={item.Id} />;
+            default:
+              return <>Unknown Type: {item.Type}</>;
+          }
+        })}
     </div>
   );
 }

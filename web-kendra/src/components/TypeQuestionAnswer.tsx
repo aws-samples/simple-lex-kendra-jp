@@ -18,8 +18,12 @@ function TypeQuestionAnswer(props: TypeQuestionAnswerProps) {
   );
 
   const documentUri = props.item.DocumentURI || '';
-  const answerTextHighlights = answerText?.Value?.TextWithHighlightsValue || { Text: '', Highlights: [] }
-  const questionTextHighlights: TextWithHighlights = questionText?.Value?.TextWithHighlightsValue || { Text: '', Highlights: [] };
+  const answerTextHighlights = answerText?.Value?.TextWithHighlightsValue || {
+    Text: '',
+    Highlights: [],
+  };
+  const questionTextHighlights: TextWithHighlights = questionText?.Value
+    ?.TextWithHighlightsValue || { Text: '', Highlights: [] };
 
   return (
     <div className="p-4 w-2/3 mb-3">

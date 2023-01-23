@@ -20,4 +20,4 @@ export const sendQuery = async (api: string, query: string) => {
   }
 
   return items;
-}
+};

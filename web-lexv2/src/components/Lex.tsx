@@ -29,11 +29,7 @@ function Lex() {
   const [sessionStarted, setSessionStarted] = useState(false);
   const [deletingSession, setDeletingSession] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-  } = useForm<Text>();
+  const { register, handleSubmit, setValue } = useForm<Text>();
 
   const { sendText, deleteSession, messages, waiting, sessionId } = useLex({
     botId: BOT_ID,
@@ -43,11 +39,12 @@ function Lex() {
     region: REGION,
   });
 
-  const { transcripts, recording, startRecording, stopRecording } = useTranscribeStreaming({
-    languageCode: 'ja-JP',
-    identityPoolId: IDENTITY_POOL_ID,
-    region: REGION,
-  });
+  const { transcripts, recording, startRecording, stopRecording } =
+    useTranscribeStreaming({
+      languageCode: 'ja-JP',
+      identityPoolId: IDENTITY_POOL_ID,
+      region: REGION,
+    });
 
   useEffect(() => {
     (async () => {
@@ -126,8 +123,8 @@ function Lex() {
 
   const messageBox = (message: Message, idx: number) => {
     return message.user
-         ? messageBoxUser(message, idx)
-         : messageBoxChatbot(message, idx);
+      ? messageBoxUser(message, idx)
+      : messageBoxChatbot(message, idx);
   };
 
   useEffect(() => {
@@ -201,7 +198,7 @@ function Lex() {
           <input
             className="grow h-10 rounded-tl-md rounded-bl-md border-t border-l border-b border-gray-400 px-2 focus:outline-none"
             type="text"
-            {...register("text")}
+            {...register('text')}
           />
           <button
             className="bg-blue-400 hover:bg-blue-500 h-10 rounded-tr-md rounded-br-md border mr-4 px-4 border-gray-400"

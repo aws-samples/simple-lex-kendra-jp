@@ -8,7 +8,9 @@ interface AnswerProps {
 
 function Answer(props: AnswerProps) {
   const highlight = clipHighlight(
-    props.item.AdditionalAttributes?.find((a) => a.Key === 'AnswerText')?.Value?.TextWithHighlightsValue || { Text: '', Highlights: [] });
+    props.item.AdditionalAttributes?.find((a) => a.Key === 'AnswerText')?.Value
+      ?.TextWithHighlightsValue || { Text: '', Highlights: [] }
+  );
 
   return (
     <div>

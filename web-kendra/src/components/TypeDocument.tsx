@@ -16,8 +16,14 @@ interface TypeDocumentProps {
 }
 
 function TypeDocument(props: TypeDocumentProps) {
-  const title: TextWithHighlights = props.item.DocumentTitle || { Text: '', Highlights: [] };
-  const body: TextWithHighlights = props.item.DocumentExcerpt || { Text: '', Highlights: [] };
+  const title: TextWithHighlights = props.item.DocumentTitle || {
+    Text: '',
+    Highlights: [],
+  };
+  const body: TextWithHighlights = props.item.DocumentExcerpt || {
+    Text: '',
+    Highlights: [],
+  };
 
   const downloadFile = async (event: any): Promise<void> => {
     const bucket_keys = new URL(props.item.DocumentURI!).pathname.split('/');
@@ -32,8 +38,8 @@ function TypeDocument(props: TypeDocumentProps) {
     });
 
     const contentType = key.endsWith('.txt')
-                      ? 'text/plain; charset=utf-8'
-                      : undefined;
+      ? 'text/plain; charset=utf-8'
+      : undefined;
 
     const getObject = new GetObjectCommand({
       Bucket: bucket,

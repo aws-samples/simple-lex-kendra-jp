@@ -49,8 +49,8 @@ function Documents(props: DocumentsProps) {
     });
 
     const contentType = key.endsWith('.txt')
-                      ? 'text/plain; charset=utf-8'
-                      : undefined;
+      ? 'text/plain; charset=utf-8'
+      : undefined;
 
     const getObject = new GetObjectCommand({
       Bucket: bucket,

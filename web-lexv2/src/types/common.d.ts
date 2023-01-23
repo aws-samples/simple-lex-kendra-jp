@@ -1,1 +1,1 @@
-declare module 'stream-browserify'
+declare module 'stream-browserify';

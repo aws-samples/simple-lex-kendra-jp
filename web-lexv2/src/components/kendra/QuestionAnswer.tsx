@@ -6,11 +6,13 @@ interface QuestionAnswerProps {
 }
 
 function QuestionAnswer(props: QuestionAnswerProps) {
-  const question = props.item.AdditionalAttributes?.find((a) => a.Key === 'QuestionText')
-                  ?.Value?.TextWithHighlightsValue?.Text || '';
+  const question =
+    props.item.AdditionalAttributes?.find((a) => a.Key === 'QuestionText')
+      ?.Value?.TextWithHighlightsValue?.Text || '';
 
-  const answer = props.item.AdditionalAttributes?.find((a) => a.Key === 'AnswerText')
-                ?.Value?.TextWithHighlightsValue?.Text || '';
+  const answer =
+    props.item.AdditionalAttributes?.find((a) => a.Key === 'AnswerText')?.Value
+      ?.TextWithHighlightsValue?.Text || '';
 
   const documentUri = props.item.DocumentURI || '';
 
