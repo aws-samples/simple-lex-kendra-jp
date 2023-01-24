@@ -90,7 +90,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
             },
             {
               name: 'PCReplacementIntent',
-              description: 'パスコンの交換',
+              description: 'パソコンの交換',
               sampleUtterances: [
                 { utterance: 'PCを交換' },
                 { utterance: 'パソコンが壊れた' },
