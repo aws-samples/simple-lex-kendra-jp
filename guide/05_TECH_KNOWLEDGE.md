@@ -29,6 +29,8 @@ Amazon Lex v2 では `AMAZON.KendraSearchIntent` を利用することで、Amaz
 
 前述した Amazon Lex v2 と Amazon Transcribe にアクセスする際には、Cognito の Identity Pool の Unauthenticated User (ゲストユーザー) で認証しています。一方、Amazon Kendra は Unauthenticated User ではアクセスできません。([Identity Pool の Unauthenticated User からアクセスできる AWS サービスに制限があるため](https://docs.aws.amazon.com/cognito/latest/developerguide/iam-roles.html#access-policies)) そこで、このサンプルプロジェクトでは Amazon API Gateway と AWS Lambda で API を作成しています。
 
+> [この件について解説したブログ](https://prototyping-blog.com/blog/identity-pool-unauth)
+
 ### AWS CDK (AWS CloudFormation) でデフォルト言語を指定できない件について
 
 [Amazon Kendra プロジェクトのデプロイ](/guide/03_DEPLOY_KENDRA.md) にて記述したように、現状は DataSource と FAQ 作成の際にデフォルトの言語を指定することができません。よって、DataSource は Sync 前に、FAQ は作成前に、UI からデフォルトの言語を指定する必要があります。
