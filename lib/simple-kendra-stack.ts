@@ -61,11 +61,11 @@ export class SimpleKendraStack extends cdk.Stack {
       destinationKeyPrefix: 'docs',
     });
 
-    const dataSourceRole = new iam.Role(this, 'DataSourceRole', {
+    const s3DataSourceRole = new iam.Role(this, 'DataSourceRole', {
       assumedBy: new iam.ServicePrincipal('kendra.amazonaws.com'),
     });
 
-    dataSourceRole.addToPolicy(
+    s3DataSourceRole.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         resources: [`arn:aws:s3:::${dataSourceBucket.bucketName}`],
@@ -73,7 +73,7 @@ export class SimpleKendraStack extends cdk.Stack {
       })
     );
 
-    dataSourceRole.addToPolicy(
+    s3DataSourceRole.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         resources: [`arn:aws:s3:::${dataSourceBucket.bucketName}/*`],
@@ -81,7 +81,7 @@ export class SimpleKendraStack extends cdk.Stack {
       })
     );
 
-    dataSourceRole.addToPolicy(
+    s3DataSourceRole.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         resources: [cdk.Token.asString(index.getAtt('Arn'))],
@@ -93,7 +93,7 @@ export class SimpleKendraStack extends cdk.Stack {
     new kendra.CfnDataSource(this, 'S3DataSource', {
       indexId: index.ref,
       name: 's3-data-source',
-      roleArn: dataSourceRole.roleArn,
+      roleArn: s3DataSourceRole.roleArn,
       type: 'S3',
       dataSourceConfiguration: {
         s3Configuration: {
@@ -102,6 +102,17 @@ export class SimpleKendraStack extends cdk.Stack {
         },
       },
     });
+
+    // Custom Data Source 用の Data Source の作成
+    const customDataSource = new kendra.CfnDataSource(
+      this,
+      'CustomDataSource',
+      {
+        indexId: index.ref,
+        name: 'custom-data-source',
+        type: 'CUSTOM',
+      }
+    );
 
     // ---
     // FAQ の作成
@@ -146,12 +157,11 @@ export class SimpleKendraStack extends cdk.Stack {
     // Kendra 用の API を作成
     // ---
 
-    const kendraFunc = new lambda.NodejsFunction(this, 'KendraFunc', {
-      entry: './lambda/kendra.ts',
+    const queryFunc = new lambda.NodejsFunction(this, 'QueryFunc', {
+      entry: './lambda/query.ts',
       timeout: cdk.Duration.minutes(3),
       environment: {
         INDEX_ID: index.ref,
-        REGION: this.region,
       },
       depsLockFilePath: './lambda/package-lock.json',
       bundling: {
@@ -164,11 +174,56 @@ export class SimpleKendraStack extends cdk.Stack {
     });
 
     // Lambda から Kendra を呼び出せるように権限を付与
-    kendraFunc.role?.addToPrincipalPolicy(
+    queryFunc.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         resources: [cdk.Token.asString(index.getAtt('Arn'))],
         actions: ['kendra:Query'],
+      })
+    );
+
+    const syncCustomDataSourceFunc = new lambda.NodejsFunction(
+      this,
+      'SyncCustomDataSourceFunc',
+      {
+        entry: './lambda/sync-custom-data-source.ts',
+        timeout: cdk.Duration.minutes(15),
+        environment: {
+          INDEX_ID: index.ref,
+          DATA_SOURCE_ID: cdk.Token.asString(customDataSource.getAtt('Id')),
+        },
+        depsLockFilePath: './lambda/package-lock.json',
+        bundling: {
+          commandHooks: {
+            beforeBundling: (i, __) => [`cd ${i} && npm ci`],
+            afterBundling: (_, __) => [],
+            beforeInstall: (_, __) => [],
+          },
+        },
+      }
+    );
+
+    syncCustomDataSourceFunc.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: [cdk.Token.asString(index.getAtt('Arn'))],
+        actions: [
+          'kendra:StartDataSourceSyncJob',
+          'kendra:StopDataSourceSyncJob',
+          'kendra:BatchPutDocument',
+          'kendra:BatchDeleteDocument',
+        ],
+      })
+    );
+
+    syncCustomDataSourceFunc.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: [cdk.Token.asString(customDataSource.getAtt('Arn'))],
+        actions: [
+          'kendra:StartDataSourceSyncJob',
+          'kendra:StopDataSourceSyncJob',
+        ],
       })
     );
 
@@ -196,7 +251,7 @@ export class SimpleKendraStack extends cdk.Stack {
     });
 
     const kendraEndpoint = kendraApi.root.addResource('kendra');
-    kendraEndpoint.addMethod('POST', new agw.LambdaIntegration(kendraFunc));
+    kendraEndpoint.addMethod('POST', new agw.LambdaIntegration(queryFunc));
 
     // -----
     // Identity Pool の作成
