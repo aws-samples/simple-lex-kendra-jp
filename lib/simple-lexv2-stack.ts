@@ -54,7 +54,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
       name: 'SimpleBot',
       roleArn: botRole.roleArn,
       dataPrivacy: {
-        childDirected: false,
+        ChildDirected: false,
       },
       idleSessionTtlInSeconds: 300,
       autoBuildBotLocales: false,
