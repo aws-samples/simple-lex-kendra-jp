@@ -48,9 +48,9 @@ export REACT_APP_REGION=us-east-1
 ```
 
 - 上記 `<...>` の値は `npx cdk deploy SimpleKendraStack` の出力を確認して適切な値に書き換えてください。
-  - `<Identity Pool ID>` は `SimpleLexV2Stack.IdentityPoolId = ...`
-  - `<Bot ID>` は `SimpleLexV2Stack.BotId = ...`
-  - `<Bot Alias ID>` は `SimpleLexV2Stack.BotAliasId = ...`
+  - `<Identity Pool ID>` は `SimpleLexV2Stack.IdentityPoolId = ...` の値
+  - `<Bot ID>` は `SimpleLexV2Stack.BotId = ...` の値
+  - `<Bot Alias ID>` は `SimpleLexV2Stack.BotAliasId = ...` の値
 - `npx cdk deploy SimpleLexV2Stack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleLexV2Stack から Outputs タブで確認してください。
 
 続いて、必要なモジュールをインストールして 3000 番ポートで待ち受けを開始します。
