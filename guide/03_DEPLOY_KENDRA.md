@@ -73,9 +73,9 @@ export REACT_APP_IDENTITY_POOL_ID=<Identity Pool ID *2>
 export REACT_APP_REGION=us-east-1
 ```
 
-> - *1) `npx cdk deploy SimpleKendraStack` の出力のうち、`SimpleKendraStack.KendraApiEndpointxxxx = ...` の形式で出力された Endpoint に `kendra` の path を追加したものを設定してください。最終的に https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/prod/kendra のような値になります。
-> - *2) `npx cdk deploy SimpleKendraStack` の出力のうち、`SimpleKendraStack.IdentityPoolId = ...` の形式で出力されたものを設定してください。
-> - `npx cdk deploy SimpleKendraStack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleKendraStack から Outputs タブで確認してください。
+- *1) `npx cdk deploy SimpleKendraStack` の出力のうち、`SimpleKendraStack.KendraApiEndpointxxxx = ...` の形式で出力された Endpoint に `kendra` の path を追加したものを設定してください。最終的に https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/prod/kendra のような値になります。
+- *2) `npx cdk deploy SimpleKendraStack` の出力のうち、`SimpleKendraStack.IdentityPoolId = ...` の形式で出力されたものを設定してください。
+- `npx cdk deploy SimpleKendraStack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleKendraStack から Outputs タブで確認してください。
 
 続いて、必要なモジュールをインストールして 3000 番ポートで待ち受けを開始します。
 
