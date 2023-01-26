@@ -18,15 +18,37 @@ function Documents(props: DocumentsProps) {
     const docTitle = i.DocumentTitle?.Text || '';
     const docText = i.DocumentExcerpt?.Text || '';
 
+    const hasDocumentURI = !!i.DocumentURI;
+    const hasS3DocumentURI = i.DocumentURI?.startsWith('https://s3.');
+
     return (
       <li key={i.Id} className="mb-3">
-        <div
-          className="text-xs text-blue-400 font-bold mb-2 flex items-center cursor-pointer"
-          onClick={() => downloadFile(i)}
-        >
-          <FontAwesomeIcon className="mr-1" icon={faArrowUpRightFromSquare} />
-          <div>{docTitle}</div>
-        </div>
+        {hasDocumentURI && hasS3DocumentURI && (
+          <div
+            className="text-xs text-blue-400 font-bold mb-2 flex items-center cursor-pointer"
+            onClick={() => downloadFile(i)}
+          >
+            <FontAwesomeIcon className="mr-1" icon={faArrowUpRightFromSquare} />
+            <div>{docTitle}</div>
+          </div>
+        )}
+
+        {hasDocumentURI && !hasS3DocumentURI && (
+          <a
+            href={i.DocumentURI}
+            className="text-xs text-blue-400 font-bold mb-2 flex items-center cursor-pointer"
+            target="_blank"
+          >
+            <FontAwesomeIcon className="mr-1" icon={faArrowUpRightFromSquare} />
+            <div>{docTitle}</div>
+          </a>
+        )}
+
+        {!hasDocumentURI && (
+          <div className="text-xs text-gray-400 font-bold mb-2 flex items-center cursor-pointer">
+            <div>docTitle</div>
+          </div>
+        )}
 
         <div className="text-xs text-gray-700 p-2 border border-gray-700 rounded-md">
           {docText}

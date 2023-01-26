@@ -2,7 +2,6 @@ import * as lambda from 'aws-lambda';
 import { KendraClient, QueryCommand } from '@aws-sdk/client-kendra';
 
 const INDEX_ID = process.env.INDEX_ID;
-const REGION = process.env.REGION;
 
 exports.handler = async (
   event: lambda.APIGatewayProxyEvent
@@ -20,10 +19,7 @@ exports.handler = async (
     };
   }
 
-  const kendra = new KendraClient({
-    region: REGION,
-  });
-
+  const kendra = new KendraClient({});
   const queryCommand = new QueryCommand({
     IndexId: INDEX_ID,
     QueryText: query,

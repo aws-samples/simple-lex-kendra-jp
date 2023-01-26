@@ -25,6 +25,9 @@ function TypeDocument(props: TypeDocumentProps) {
     Highlights: [],
   };
 
+  const hasDocumentURI = !!props.item.DocumentURI;
+  const hasS3DocumentURI = props.item.DocumentURI?.startsWith('https://s3.');
+
   const downloadFile = async (event: any): Promise<void> => {
     const bucket_keys = new URL(props.item.DocumentURI!).pathname.split('/');
     const bucket = bucket_keys[1];
@@ -54,15 +57,33 @@ function TypeDocument(props: TypeDocumentProps) {
 
   return (
     <div className="p-4 w-2/3 mb-3">
-      <div
-        className="text-xs text-sky-400 flex items-center cursor-pointer mb-1 ml-1 w-fit"
-        onClick={downloadFile}
-      >
-        <FontAwesomeIcon className="mr-2" icon={faFile} />
-        <div className="text-sky-400">
-          <HighlightText textWithHighlights={title} />
+      {hasDocumentURI && hasS3DocumentURI && (
+        <div
+          className="text-xs text-sky-400 flex items-center cursor-pointer mb-1 ml-1 w-fit"
+          onClick={downloadFile}
+        >
+          <FontAwesomeIcon className="mr-2" icon={faFile} />
+          <div className="text-sky-400">
+            <HighlightText textWithHighlights={title} />
+          </div>
         </div>
-      </div>
+      )}
+      {hasDocumentURI && !hasS3DocumentURI && (
+        <a
+          className="text-xs text-sky-400 flex items-center cursor-pointer mb-1 ml-1 w-fit"
+          href={props.item.DocumentURI}
+        >
+          <FontAwesomeIcon className="mr-2" icon={faFile} />
+          <div className="text-sky-400">
+            <HighlightText textWithHighlights={title} />
+          </div>
+        </a>
+      )}
+      {!hasDocumentURI && (
+        <div className="text-xs text-sky-400 flex mb-1">
+          ドキュメントのソースが見つかりませんでした
+        </div>
+      )}
       <div className="text-md">
         <HighlightText textWithHighlights={body} />
       </div>

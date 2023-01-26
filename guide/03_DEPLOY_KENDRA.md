@@ -38,7 +38,7 @@ SimpleKendraStack.KendraSampleFrontend = ...
 
 > - 簡単のため、サンプルのドキュメントとしてとしてテキストファイル (`.txt`) を利用していますが、`.pdf` や `.html` などでも取り込めます。サポートされているファイルのフォーマットは[こちら](https://docs.aws.amazon.com/kendra/latest/dg/index-document-types.html)。
 
-## FAQ の追加 (オプショナル)
+## FAQ の追加 (オプショナル 1)
 
 Amazon Kendra に「よくある質問」を追加します。
 
@@ -48,6 +48,20 @@ Amazon Kendra に「よくある質問」を追加します。
 > - ここでは最も簡単な `質問,回答,URL` 形式の csv ファイルとして定義していますが、[その他の方法](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/in-creating-faq.html)で定義することも可能です。
 
 取り込みが完了したら、サンプルサイトにアクセスして「Slack ログイン 方法」と検索してください。「よくある質問」の項目が表示されたら、成功しています。
+
+## Custom Data Source の追加 (オプショナル 2)
+
+Amazon Kendra は多くの Native connectors を提供しています。([参考: Connectors](https://aws.amazon.com/kendra/connectors/)) しかし、中にはこれらの Connectors 以外のデータソースを利用したい場合もあると思います。その際に利用するのが Custom Data Source です。Custom Data Source にデータを追加する場合は、データのクロール、ドキュメントごとの ID の発行、インデックスしているドキュメントの管理などは独自で実装する必要があります。ここでは、それらは実装済みのものとして、基本的なインデックスへの登録方法のみを実装しています。
+
+Custom Data Source そのものは CDK でデプロイされています。S3 の時と同様に [Amazon Kendra](https://console.aws.amazon.com/kendra/home) を開き、simple-index-by-cdk を選択して、左カラムの Data sources から custom-data-source をクリックします。右上の Actions から Edit を選択肢、Default Language を Japanese に変更してください。
+
+データを挿入するための Lambda 関数は CDK でデプロイ済みです。[`/lambda/sync-custom-data-source.ts`](/lambda/sync-custom-data-source.ts) の `demoDocuments` という変数にインデックスするデータが定義されています。では、この Lambda 関数を実行します。[Lambda のコンソール](https://console.aws.amazon.com/lambda/home) を開き、SimpleKendraStack-SyncCustomDataSourceFunc... で始まる名前の関数をクリックしてください。ページ中部の Test タブをクリックして、右上の Test を実行してください。この際、パラメータなどは特に見ていないので、デフォルトのままで問題ありません。
+
+実行に成功したら、[Amazon Kendra](https://console.aws.amazon.com/kendra/home) を開き、左カラムの Data sources から custom-data-source をクリックして、Sync run history を確認してください。Indexing... と表示されていればインデックス中で、Succeeded と出れば成功しています。Added の列は 1 になっているはずです。(1 つのドキュメントを追加。)
+
+ではサンプルサイトにアクセスして、追加したドキュメントの内容を検索してみましょう。Kendra についてのドキュメントを追加したので、「Kendra」と検索してみてください。
+
+このように、データさえフェッチできれば、基本的にはどのようなドキュメントでも Kendra に追加できます。この Lambda 関数を定期実行にすれば、自動で Indexing を実行することも可能です。また、今回はデータ形式として PLAIN_TEXT を指定していますが、HTML や PPT、PDF など多くのフォーマットにも対応しています。([参考: Types of documents](https://docs.aws.amazon.com/kendra/latest/dg/index-document-types.html))
 
 ## Next Step
 
