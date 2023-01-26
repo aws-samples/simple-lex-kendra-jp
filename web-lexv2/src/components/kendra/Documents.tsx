@@ -38,6 +38,7 @@ function Documents(props: DocumentsProps) {
             href={i.DocumentURI}
             className="text-xs text-blue-400 font-bold mb-2 flex items-center cursor-pointer"
             target="_blank"
+            rel="noreferrer"
           >
             <FontAwesomeIcon className="mr-1" icon={faArrowUpRightFromSquare} />
             <div>{docTitle}</div>

@@ -63,6 +63,29 @@ Custom Data Source そのものは CDK でデプロイされています。S3 �
 
 このように、データさえフェッチできれば、基本的にはどのようなドキュメントでも Kendra に追加できます。この Lambda 関数を定期実行にすれば、自動で Indexing を実行することも可能です。また、今回はデータ形式として PLAIN_TEXT を指定していますが、HTML や PPT、PDF など多くのフォーマットにも対応しています。([参考: Types of documents](https://docs.aws.amazon.com/kendra/latest/dg/index-document-types.html))
 
+## 手元で Frontend を動かす (オプショナル 3)
+
+手元の PC で Frontend アプリを実行します。Backend をデプロイしておく必要があるため、CDK のデプロイは完了していることを想定しています。以下のコマンドは全て `/web-kendra` ディレクトリで実行してください。まず、以下のコマンドで必要な環境変数を設定します。
+
+```bash
+export REACT_APP_API_ENDPOINT=<Kendra API Endpoint *1>
+export REACT_APP_IDENTITY_POOL_ID=<Identity Pool ID *2>
+export REACT_APP_REGION=us-east-1
+```
+
+- *1) `npx cdk deploy SimpleKendraStack` の出力のうち、`SimpleKendraStack.KendraApiEndpointxxxx = ...` の形式で出力された Endpoint に `kendra` の path を追加したものを設定してください。最終的に https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/prod/kendra のような値になります。
+- *2) `npx cdk deploy SimpleKendraStack` の出力のうち、`SimpleKendraStack.IdentityPoolId = ...` の形式で出力されたものを設定してください。
+- `npx cdk deploy SimpleKendraStack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleKendraStack から Outputs タブで確認してください。
+
+続いて、必要なモジュールをインストールして 3000 番ポートで待ち受けを開始します。
+
+```bash
+npm install
+npm run start
+```
+
+自動でブラウザが開いて、Frontend にアクセスできると思います。
+
 ## Next Step
 
 [Amazon Lex v2 プロジェクトのデプロイ](/guide/04_DEPLOY_LEXV2.md)
