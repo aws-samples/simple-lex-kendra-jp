@@ -1,4 +1,3 @@
-import * as lambda from 'aws-lambda';
 import {
   KendraClient,
   StartDataSourceSyncJobCommand,
@@ -14,14 +13,14 @@ const demoDocuments = [
     id: 'amazon-kendra',
     title: 'Amazon Kendra',
     content:
-      '機械学習を活用したインテリジェントなエンタープライズ検索で回答を迅速に見つける。複数の構造化および非構造化コンテンツリポジトリに対して、統一された検索エクスペリエンスを迅速に実装します。自然言語処理 (NLP) を使用することで、機械学習 (ML) の専門知識がなくても、非常に正確な回答を得ることができます。コンテンツの属性、鮮度、ユーザーの行動などに基づいて検索結果を微調整します。ML を活用したインスタント回答、FAQ、ドキュメントのランク付けを、フルマネージド型サービスとして提供します。Amazon Kendra は、ユーザーが組み込みコネクタを使用してさまざまなコンテンツリポジトリを検索できるようにするインテリジェントなエンタープライズ検索サービスです。',
+      '機械学習を活用したインテリジェントなエンタープライズ検索で回答を迅速に見つける。複数の構造化および非構造化コンテンツリポジトリに対して、統一された検索エクスペリエンスを迅速に実装します。自然言語処理 (NLP) を使用することで、機械学習 (ML) の専門知識がなくても、非常に正確な回答を得ることができます。コンテンツの属性、鮮度、ユーザーの行動などに基づいて検索結果を微調整します。ML を活用したインスタント回答、FAQ、ドキュメントのランク付けを、フルマネージド型サービスとして提供します。Amazon Kendra は、ユーザーが組み込みコネクタを使用してさまざまなコンテンツリポジトリを検索できるようにするインテリジェントなエンタープライズ検索サービスです。Amazon Kendra インテリジェント検索サービスが組織にどのように役立つかについて説明します。',
     url: 'https://aws.amazon.com/jp/kendra/',
   },
 ];
 
-exports.handler = async (
-  _event: lambda.APIGatewayProxyEvent
-): Promise<lambda.APIGatewayProxyResult> => {
+interface SyncCustomDataSourceProps {}
+
+exports.handler = async (_props: SyncCustomDataSourceProps): Promise<void> => {
   const kendra = new KendraClient({});
   const startDataSourceSyncJobCommand = new StartDataSourceSyncJobCommand({
     Id: DATA_SOURCE_ID,
@@ -73,12 +72,4 @@ exports.handler = async (
     IndexId: INDEX_ID,
   });
   await kendra.send(stopDataSourceSyncJobCommand);
-
-  return {
-    statusCode: 200,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ message: 'ok' }),
-  };
 };
