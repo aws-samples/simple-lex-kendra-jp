@@ -65,7 +65,7 @@ Custom Data Source そのものは CDK でデプロイされています。S3 �
 
 ## 手元で Frontend を動かす (オプショナル 3)
 
-手元の PC で Frontend アプリを実行します。Backend をデプロイしておく必要があるため、CDK のデプロイは完了していることを想定しています。以下のコマンドは全て `/web-kendra` ディレクトリで実行してください。
+手元の PC で Frontend アプリを実行します。Backend をデプロイしておく必要があるため、CDK のデプロイは完了していることを想定しています。以下のコマンドは全て `/web-kendra` ディレクトリで実行してください。まず、以下のコマンドで必要な環境変数を設定します。
 
 ```bash
 export REACT_APP_API_ENDPOINT=<Kendra API Endpoint *1>
