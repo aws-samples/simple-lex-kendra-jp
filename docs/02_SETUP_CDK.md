@@ -1,11 +1,9 @@
 # AWS CDK のセットアップ
 
-まずは、このリポジトリを `git clone` して、npm パッケージのインストールを行います。ターミナルにて、以下のコマンドを実行してください。
+以下のコマンドは [cdk](/cdk) ディレクトリで実施します。以下のコマンドを実行して、cdk ディレクトリに移動してください。
 
-```bash
-git clone https://github.com/aws-samples/simple-lex-kendra-jp
-cd simple-lex-kendra-jp
-npm install
+```
+cd cdk
 ```
 
 ## AWS CDK の Bootstrap
@@ -22,4 +20,4 @@ npx cdk bootstrap aws://<Account ID>/us-east-1
 
 ## Next Step
 
-[Amazon Kendra プロジェクトのデプロイ](/guide/03_DEPLOY_KENDRA.md)
+[Amazon Kendra プロジェクトのデプロイ](/docs/03_DEPLOY_KENDRA.md)

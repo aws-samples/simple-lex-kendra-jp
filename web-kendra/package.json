@@ -1,6 +1,5 @@
 {
   "name": "web-kendra",
-  "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@aws-sdk/client-cognito-identity": "^3.231.0",

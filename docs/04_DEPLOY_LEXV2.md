@@ -1,5 +1,9 @@
 # Amazon Lex v2 プロジェクトのデプロイ
 
+以下のコマンドは [cdk](/cdk) ディレクトリで実施します。
+
+## デプロイメント
+
 基本的な手順は Amazon Kendra プロジェクト時と同様です。以下のコマンドを実行してください。
 
 ```bash
@@ -22,7 +26,7 @@ SimpleLexV2Stack.LexV2SampleFrontend = ...
 
 右下のヘッドセットのアイコンをクリックすることで Chatbot を開始できます。
 
-「貸与された PC を交換する」フローを Amazon Lex v2 に定義しています。([定義](/lib/simple-lexv2-stack.ts)) 試しに「PC交換」と発話してください。やりとりを行い、最終的に「申請が完了しました」となれば成功です。
+「貸与された PC を交換する」フローを Amazon Lex v2 に定義しています。([定義](/cdk/lib/simple-lexv2-stack.ts)) 試しに「PC交換」と発話してください。やりとりを行い、最終的に「申請が完了しました」となれば成功です。
 
 ![lexv2-pc-replacement.png](/imgs/lexv2-pc-replacement.png)
 
@@ -41,6 +45,8 @@ Chatbot 左下のマイクのアイコンをクリックすると音声入力で
 手元の PC で Frontend アプリを実行します。Backend をデプロイしておく必要があるため、CDK のデプロイは完了していることを想定しています。以下のコマンドは全て `/web-lexv2` ディレクトリで実行してください。まず、以下のコマンドで必要な環境変数を設定します。
 
 ```bash
+cd web-lexv2
+
 export REACT_APP_IDENTITY_POOL_ID=<Identity Pool ID>
 export REACT_APP_BOT_ID=<Bot ID>
 export REACT_APP_BOT_ALIAS_ID=<Bot Alias ID>
@@ -53,10 +59,9 @@ export REACT_APP_REGION=us-east-1
   - `<Bot Alias ID>` は `SimpleLexV2Stack.BotAliasId = ...` の値
 - `npx cdk deploy SimpleLexV2Stack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleLexV2Stack から Outputs タブで確認してください。
 
-続いて、必要なモジュールをインストールして 3000 番ポートで待ち受けを開始します。
+続いて、3000 番ポートで待ち受けを開始します。
 
 ```bash
-npm install
 npm run start
 ```
 
@@ -64,4 +69,4 @@ npm run start
 
 ## Next Step
 
-[Tech Knowledge](/guide/05_TECH_KNOWLEDGE.md)
+[Tech Knowledge](/docs/05_TECH_KNOWLEDGE.md)
