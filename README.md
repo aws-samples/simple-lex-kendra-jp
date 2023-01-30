@@ -19,11 +19,11 @@ Amazon Lex v2 のプロジェクトでは、Chatbot 形式で情報システム�
 Amazon Kendra のプロジェクトでは、検索フォームから直接社内ドキュメントを検索できます。
 
 ## Step-by-Step Guide for Deployment
-- [1. 前提条件の確認](/guide/01_PRE_REQUIREMENT.md)
-- [2. AWS CDK のセットアップ](/guide/02_SETUP_CDK.md)
-- [3. Amazon Kendra プロジェクトのデプロイ](/guide/03_DEPLOY_KENDRA.md)
-- [4. Amazon Lex v2 プロジェクトのデプロイ](/guide/04_DEPLOY_LEXV2.md)
-- [5. Tech Knowledge](/guide/05_TECH_KNOWLEDGE.md)
+- [1. 前提条件の確認](/docs/01_PRE_REQUIREMENT.md)
+- [2. AWS CDK のセットアップ](/docs/02_SETUP_CDK.md)
+- [3. Amazon Kendra プロジェクトのデプロイ](/docs/03_DEPLOY_KENDRA.md)
+- [4. Amazon Lex v2 プロジェクトのデプロイ](/docs/04_DEPLOY_LEXV2.md)
+- [5. Tech Knowledge](/docs/05_TECH_KNOWLEDGE.md)
 
 ## Security
 

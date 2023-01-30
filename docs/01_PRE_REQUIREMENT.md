@@ -6,6 +6,16 @@
 
 手元に UNIX コマンド実行環境がない場合は、AWS Cloud9 を利用することも可能です。AWS Cloud9 の環境を作成する際は、[cloud9-setup-for-prototyping](https://github.com/aws-samples/cloud9-setup-for-prototyping) の利用を推奨します。
 
+## 準備
+
+まずは、このリポジトリを `git clone` して、npm パッケージのインストールを行います。ターミナルにて、以下のコマンドを実行してください。
+
+```bash
+git clone https://github.com/aws-samples/simple-lex-kendra-jp
+cd simple-lex-kendra-jp
+npm install
+```
+
 ## Next Step
 
-[AWS CDK のセットアップ](/guide/02_SETUP_CDK.md)
+[AWS CDK のセットアップ](/docs/02_SETUP_CDK.md)

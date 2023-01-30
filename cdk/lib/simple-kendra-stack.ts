@@ -163,14 +163,6 @@ export class SimpleKendraStack extends cdk.Stack {
       environment: {
         INDEX_ID: index.ref,
       },
-      depsLockFilePath: './lambda/package-lock.json',
-      bundling: {
-        commandHooks: {
-          beforeBundling: (i, __) => [`cd ${i} && npm ci`],
-          afterBundling: (_, __) => [],
-          beforeInstall: (_, __) => [],
-        },
-      },
     });
 
     // Lambda から Kendra を呼び出せるように権限を付与
@@ -191,14 +183,6 @@ export class SimpleKendraStack extends cdk.Stack {
         environment: {
           INDEX_ID: index.ref,
           DATA_SOURCE_ID: cdk.Token.asString(customDataSource.getAtt('Id')),
-        },
-        depsLockFilePath: './lambda/package-lock.json',
-        bundling: {
-          commandHooks: {
-            beforeBundling: (i, __) => [`cd ${i} && npm ci`],
-            afterBundling: (_, __) => [],
-            beforeInstall: (_, __) => [],
-          },
         },
       }
     );
@@ -294,7 +278,7 @@ export class SimpleKendraStack extends cdk.Stack {
     new NodejsBuild(this, 'WebKendra', {
       assets: [
         {
-          path: 'web-kendra',
+          path: '../web-kendra',
           exclude: ['build', 'node_modules'],
         },
       ],
