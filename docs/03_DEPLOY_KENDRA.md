@@ -1,13 +1,13 @@
 # Amazon Kendra プロジェクトのデプロイ
 
-以下のコマンドは [cdk](/cdk) ディレクトリで実施します。
+> コマンドはルートディレクトリ [/simple-lex-kendra-jp](/) で実行してください。
 
 ## デプロイメント
 
 以下のコマンドを実行してください。途中でセキュリティに関連した変更について確認が求められますので、`y` を入力して Enter キーを押下してください。確認をスキップしたい場合は、デプロイコマンドに `--require-approval never` オプションを追加してください。
 
 ```bash
-npx cdk deploy SimpleKendraStack
+npm exec -w cdk -- cdk deploy SimpleKendraStack
 ```
 
 以下のような出力であれば成功です。`SimpleKendraStack.KendraSampleFrontend` にサンプルの URL が表示されていますが、アクセスする前に、以下のデータ取り込みを実施してください。
@@ -69,11 +69,9 @@ Custom Data Source そのものは CDK でデプロイされています。S3 �
 
 ## 手元で Frontend を動かす (オプショナル 4)
 
-手元の PC で Frontend アプリを実行します。Backend をデプロイしておく必要があるため、CDK のデプロイは完了していることを想定しています。まず、[/web-kendra](/web-kendra) ディレクトリに移動して、必要な環境変数を設定します。
+手元の PC で Frontend アプリを実行します。Backend をデプロイしておく必要があるため、CDK のデプロイは完了していることを想定しています。以下のコマンドを実行してください。
 
 ```bash
-cd ../web-kendra
-
 export REACT_APP_API_ENDPOINT=<Kendra API Endpoint *1>
 export REACT_APP_IDENTITY_POOL_ID=<Identity Pool ID *2>
 export REACT_APP_REGION=us-east-1
@@ -86,7 +84,7 @@ export REACT_APP_REGION=us-east-1
 続いて、3000 番ポートで待ち受けを開始します。
 
 ```bash
-npm run start
+npm run start -w web-kendra
 ```
 
 自動でブラウザが開いて、Frontend にアクセスできると思います。

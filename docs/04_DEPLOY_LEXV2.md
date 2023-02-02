@@ -1,13 +1,13 @@
 # Amazon Lex v2 プロジェクトのデプロイ
 
-以下のコマンドは [cdk](/cdk) ディレクトリで実施します。
+> コマンドはルートディレクトリ [/simple-lex-kendra-jp](/) で実行してください。
 
 ## デプロイメント
 
 基本的な手順は Amazon Kendra プロジェクト時と同様です。以下のコマンドを実行してください。
 
 ```bash
-npx cdk deploy SimpleLexV2Stack
+npm exec -w cdk -- cdk deploy SimpleLexV2Stack
 ```
 
 Amazon Lex v2 のプロジェクトは Amazon Kendra の機能を一部利用します。そのため、先に Amazon Kendra のプロジェクトをデプロイしないと、Amazon Lex v2 のプロジェクトをデプロイすることはできません。依存関係は AWS CDK によって自動で解決されるため、上記コマンドを実行すると、先に Amazon Kendra のプロジェクトがデプロイされている様子がわかると思います。
@@ -42,11 +42,9 @@ Chatbot 左下のマイクのアイコンをクリックすると音声入力で
 
 ## 手元で Frontend を動かす (オプショナル 1)
 
-手元の PC で Frontend アプリを実行します。Backend をデプロイしておく必要があるため、CDK のデプロイは完了していることを想定しています。まず、[/web-lexv2](/web-lexv2) ディレクトリに移動して、必要な環境変数を設定します。
+手元の PC で Frontend アプリを実行します。Backend をデプロイしておく必要があるため、CDK のデプロイは完了していることを想定しています。以下のコマンドを実行してください。
 
 ```bash
-cd ../web-lexv2
-
 export REACT_APP_IDENTITY_POOL_ID=<Identity Pool ID>
 export REACT_APP_BOT_ID=<Bot ID>
 export REACT_APP_BOT_ALIAS_ID=<Bot Alias ID>
@@ -62,7 +60,7 @@ export REACT_APP_REGION=us-east-1
 続いて、3000 番ポートで待ち受けを開始します。
 
 ```bash
-npm run start
+npm run start -w web-lexv2
 ```
 
 自動でブラウザが開いて、Frontend にアクセスできると思います。
