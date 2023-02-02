@@ -13,7 +13,7 @@
 ```bash
 git clone https://github.com/aws-samples/simple-lex-kendra-jp
 cd simple-lex-kendra-jp
-npm install
+npm install --workspaces
 ```
 
 ## Next Step
