@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { QueryResultItem } from '@aws-sdk/client-kendra';
 import clipHighlight from './clipHighlight';
 
@@ -7,10 +7,12 @@ interface AnswerProps {
 }
 
 function Answer(props: AnswerProps) {
-  const highlight = clipHighlight(
-    props.item.AdditionalAttributes?.find((a) => a.Key === 'AnswerText')?.Value
-      ?.TextWithHighlightsValue || { Text: '', Highlights: [] }
-  );
+  const highlight = useMemo(() => {
+    return clipHighlight(
+      props.item.AdditionalAttributes?.find((a) => a.Key === 'AnswerText')
+        ?.Value?.TextWithHighlightsValue || { Text: '', Highlights: [] }
+    );
+  }, [props]);
 
   return (
     <div>

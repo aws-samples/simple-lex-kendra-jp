@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { QueryResultItem } from '@aws-sdk/client-kendra';
 
 interface QuestionAnswerProps {
@@ -6,15 +6,19 @@ interface QuestionAnswerProps {
 }
 
 function QuestionAnswer(props: QuestionAnswerProps) {
-  const question =
-    props.item.AdditionalAttributes?.find((a) => a.Key === 'QuestionText')
-      ?.Value?.TextWithHighlightsValue?.Text || '';
+  const { question, answer, documentUri } = useMemo(() => {
+    const question =
+      props.item.AdditionalAttributes?.find((a) => a.Key === 'QuestionText')
+        ?.Value?.TextWithHighlightsValue?.Text || '';
 
-  const answer =
-    props.item.AdditionalAttributes?.find((a) => a.Key === 'AnswerText')?.Value
-      ?.TextWithHighlightsValue?.Text || '';
+    const answer =
+      props.item.AdditionalAttributes?.find((a) => a.Key === 'AnswerText')
+        ?.Value?.TextWithHighlightsValue?.Text || '';
 
-  const documentUri = props.item.DocumentURI || '';
+    const documentUri = props.item.DocumentURI || '';
+
+    return { question, answer, documentUri };
+  }, [props]);
 
   return (
     <div>

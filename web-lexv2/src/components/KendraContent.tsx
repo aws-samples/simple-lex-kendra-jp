@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { QueryResult, QueryResultItem } from '@aws-sdk/client-kendra';
 import Answer from './kendra/Answer';
 import QuestionAnswer from './kendra/QuestionAnswer';
@@ -10,9 +10,7 @@ interface KendraContentProps {
 }
 
 function KendraContent(props: KendraContentProps) {
-  const [element, setElement] = useState<JSX.Element>(<></>);
-
-  useEffect(() => {
+  const { answer, questionAnswer, documents } = useMemo(() => {
     const res: QueryResult = JSON.parse(props.json);
     const items: QueryResultItem[] = res.ResultItems || [];
 
@@ -22,18 +20,18 @@ function KendraContent(props: KendraContentProps) {
     );
     const documents = items.filter((item) => item.Type === 'DOCUMENT');
 
-    if (answer) {
-      setElement(<Answer item={answer} />);
-    } else if (questionAnswer) {
-      setElement(<QuestionAnswer item={questionAnswer} />);
-    } else if (documents.length > 0) {
-      setElement(<Documents items={documents} />);
-    } else {
-      setElement(<NotFound />);
-    }
+    return { answer, questionAnswer, documents };
   }, [props]);
 
-  return <>{element}</>;
+  if (answer) {
+    return <Answer item={answer} />;
+  } else if (questionAnswer) {
+    return <QuestionAnswer item={questionAnswer} />;
+  } else if (documents.length > 0) {
+    return <Documents items={documents} />;
+  } else {
+    return <NotFound />;
+  }
 }
 
 export default KendraContent;

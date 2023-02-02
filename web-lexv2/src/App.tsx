@@ -3,7 +3,7 @@ import Lex from './components/Lex';
 import './App.css';
 
 function App() {
-  const dummyContents = new Array(100).fill(0).map((_: number, idx: number) => {
+  const dummyContents = new Array(100).fill(0).map((_, idx) => {
     return (
       <div key={idx} className="text-gray-400">
         Dummy のコンテンツ Dummy のコンテンツ Dummy のコンテンツ Dummy

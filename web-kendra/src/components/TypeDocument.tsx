@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TextWithHighlights } from '@aws-sdk/client-kendra';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile } from '@fortawesome/free-solid-svg-icons';
@@ -16,44 +16,54 @@ interface TypeDocumentProps {
 }
 
 function TypeDocument(props: TypeDocumentProps) {
-  const title: TextWithHighlights = props.item.DocumentTitle || {
-    Text: '',
-    Highlights: [],
-  };
-  const body: TextWithHighlights = props.item.DocumentExcerpt || {
-    Text: '',
-    Highlights: [],
-  };
+  const { title, body, hasDocumentURI, hasS3DocumentURI, downloadFile } =
+    useMemo(() => {
+      const title: TextWithHighlights = props.item.DocumentTitle || {
+        Text: '',
+        Highlights: [],
+      };
+      const body: TextWithHighlights = props.item.DocumentExcerpt || {
+        Text: '',
+        Highlights: [],
+      };
 
-  const hasDocumentURI = !!props.item.DocumentURI;
-  const hasS3DocumentURI = props.item.DocumentURI?.startsWith('https://s3.');
+      const hasDocumentURI = !!props.item.DocumentURI;
+      const hasS3DocumentURI =
+        props.item.DocumentURI?.startsWith('https://s3.');
 
-  const downloadFile = async (event: any): Promise<void> => {
-    const bucket_keys = new URL(props.item.DocumentURI!).pathname.split('/');
-    const bucket = bucket_keys[1];
-    const key = bucket_keys.slice(2, bucket_keys.length).join('/');
-    const s3 = new S3Client({
-      region: REGION,
-      credentials: fromCognitoIdentityPool({
-        identityPoolId: IDENTITY_POOL_ID,
-        clientConfig: { region: REGION },
-      }),
-    });
+      const downloadFile = async (event: any): Promise<void> => {
+        const bucket_keys = new URL(props.item.DocumentURI!).pathname.split(
+          '/'
+        );
+        const bucket = bucket_keys[1];
+        const key = bucket_keys.slice(2, bucket_keys.length).join('/');
+        const s3 = new S3Client({
+          region: REGION,
+          credentials: fromCognitoIdentityPool({
+            identityPoolId: IDENTITY_POOL_ID,
+            clientConfig: { region: REGION },
+          }),
+        });
 
-    const contentType = key.endsWith('.txt')
-      ? 'text/plain; charset=utf-8'
-      : undefined;
+        const contentType = key.endsWith('.txt')
+          ? 'text/plain; charset=utf-8'
+          : undefined;
 
-    const getObject = new GetObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      ResponseContentType: contentType,
-    });
+        const getObject = new GetObjectCommand({
+          Bucket: bucket,
+          Key: key,
+          ResponseContentType: contentType,
+        });
 
-    const objectUrl = await getSignedUrl(s3, getObject, { expiresIn: 3600 });
+        const objectUrl = await getSignedUrl(s3, getObject, {
+          expiresIn: 3600,
+        });
 
-    window.open(objectUrl, '_blank', 'noopener,noreferrer');
-  };
+        window.open(objectUrl, '_blank', 'noopener,noreferrer');
+      };
+
+      return { title, body, hasDocumentURI, hasS3DocumentURI, downloadFile };
+    }, [props]);
 
   return (
     <div className="p-4 w-2/3 mb-3">

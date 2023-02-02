@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faComment } from '@fortawesome/free-solid-svg-icons';
 import { QueryResultItem } from '@aws-sdk/client-kendra';
@@ -9,25 +9,29 @@ interface TypeAnswerProps {
 }
 
 function TypeAnswer(props: TypeAnswerProps) {
-  const answerText = props.item.AdditionalAttributes?.find(
-    (a) => a.Key === 'AnswerText'
-  );
+  const { answer, answerTextHighlights } = useMemo(() => {
+    const answerText = props.item.AdditionalAttributes?.find(
+      (a) => a.Key === 'AnswerText'
+    );
 
-  const answerOffsets =
-    answerText?.Value?.TextWithHighlightsValue?.Highlights?.[0];
+    const answerOffsets =
+      answerText?.Value?.TextWithHighlightsValue?.Highlights?.[0];
 
-  const answer =
-    (answerOffsets
-      ? answerText?.Value?.TextWithHighlightsValue?.Text?.substring(
-          answerOffsets.BeginOffset || 0,
-          answerOffsets.EndOffset
-        )
-      : answerText?.Value?.TextWithHighlightsValue?.Text) || '';
+    const answer =
+      (answerOffsets
+        ? answerText?.Value?.TextWithHighlightsValue?.Text?.substring(
+            answerOffsets.BeginOffset || 0,
+            answerOffsets.EndOffset
+          )
+        : answerText?.Value?.TextWithHighlightsValue?.Text) || '';
 
-  const answerTextHighlights = answerText?.Value?.TextWithHighlightsValue || {
-    Text: '',
-    Highlights: [],
-  };
+    const answerTextHighlights = answerText?.Value?.TextWithHighlightsValue || {
+      Text: '',
+      Highlights: [],
+    };
+
+    return { answer, answerTextHighlights };
+  }, [props]);
 
   return (
     <div className="p-4 w-2/3 mb-3">
