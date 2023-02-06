@@ -11,6 +11,8 @@ import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
 
 export interface SimpleLexV2StackProps extends cdk.StackProps {
   kendraIndex: kendra.CfnIndex;
+  latestBotVersion: number,
+  autoIncrementBotVersion: boolean;
 }
 
 export class SimpleLexV2Stack extends cdk.Stack {
@@ -53,7 +55,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
       botLocales: [
         {
           localeId: 'ja_JP',
-          nluConfidenceThreshold: 0.8,
+          nluConfidenceThreshold: 0.85,
           slotTypes: [
             {
               name: 'PCTypes',
@@ -186,7 +188,8 @@ export class SimpleLexV2Stack extends cdk.Stack {
       ],
     });
 
-    const latestVersion = new lex.CfnBotVersion(this, 'Latest', {
+    const botVersion = props.latestBotVersion + (props.autoIncrementBotVersion ? 1 : 0);
+    const latestVersion = new lex.CfnBotVersion(this, `BotVersion${botVersion}`, {
       botId: bot.ref,
       botVersionLocaleSpecification: [
         {
@@ -296,6 +299,10 @@ export class SimpleLexV2Stack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'BotAliasId', {
       value: cdk.Token.asString(latestAlias.getAtt('BotAliasId')),
+    });
+
+    new cdk.CfnOutput(this, 'BotVersionNumber', {
+      value: botVersion.toString(),
     });
 
     new cdk.CfnOutput(this, 'IdentityPoolId', {
