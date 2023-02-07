@@ -5,6 +5,7 @@
     "lint": "prettier --write ."
   },
   "devDependencies": {
+    "@types/node": "^18.11.19",
     "prettier": "^2.8.3"
   },
   "workspaces": [
