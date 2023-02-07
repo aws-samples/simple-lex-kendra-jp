@@ -81,6 +81,19 @@ export class SimpleLexV2Stack extends cdk.Stack {
                 'いずれの Intent にも該当しない場合、Kendra をキックする',
               parentIntentSignature: 'AMAZON.FallbackIntent',
               fulfillmentCodeHook: { enabled: true },
+              initialResponseSetting: {
+                initialResponse: {
+                  messageGroupsList: [
+                    {
+                      message: {
+                        plainTextMessage: {
+                          value: '対応方法がわかりませんでした。社内ドキュメントを検索します。',
+                        },
+                      },
+                    }
+                  ],
+                }
+              },
             },
             {
               name: 'PCReplacementIntent',

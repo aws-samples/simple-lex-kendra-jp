@@ -18,7 +18,7 @@ const fetchLatestBotVersion = async (): Promise<number> => {
     } else {
       return 0;
     }
-  } finally {
+  } catch (_) {
     return 0;
   }
 };
