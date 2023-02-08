@@ -19,12 +19,6 @@ Amazon Lex v2 では `AMAZON.KendraSearchIntent` を利用することで、Amaz
 
 ## Amazon Kendra
 
-### 東京リージョン
-
-2022/12 現在 Amazon Kendra は東京リージョン (ap-northeast-1) ではご利用いただけません。最新状況は以下で確認してください。
-
-- [AWS リージョン別のサービス](https://aws.amazon.com/jp/about-aws/global-infrastructure/regional-product-services/)
-
 ### Identity Pool の Unauthenticated User に関して
 
 前述した Amazon Lex v2 と Amazon Transcribe にアクセスする際には、Cognito の Identity Pool の Unauthenticated User (ゲストユーザー) で認証しています。一方、Amazon Kendra は Unauthenticated User ではアクセスできません。([Identity Pool の Unauthenticated User からアクセスできる AWS サービスに制限があるため](https://docs.aws.amazon.com/cognito/latest/developerguide/iam-roles.html#access-policies)) そこで、このサンプルプロジェクトでは Amazon API Gateway と AWS Lambda で API を作成しています。
