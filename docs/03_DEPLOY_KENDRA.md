@@ -4,7 +4,7 @@
 
 ## デプロイメント
 
-以下のコマンドを実行してください。途中でセキュリティに関連した変更について確認が求められますので、`y` を入力して Enter キーを押下してください。確認をスキップしたい場合は、デプロイコマンドに `--require-approval never` オプションを追加してください。
+以下のコマンドを実行してください。途中でセキュリティに関連した変更について確認が求められますので、`y` を入力して Enter キーを押下してください。確認をスキップしたい場合は、デプロイコマンドに `--require-approval never` オプションを追加してください。(これに続くドキュメントでは、以下のコマンドを単に `cdk deploy SimpleKendraStack` と記述しています。)
 
 ```bash
 npm exec -w cdk -- cdk deploy SimpleKendraStack
@@ -38,7 +38,7 @@ SimpleKendraStack.KendraSampleFrontend = ...
 
 ## ドキュメントの追加/変更 (オプショナル 1)
 
-ドキュメントを追加/変更する場合は、[`/cdk/docs`](/cdk/docs) ディレクトリにてドキュメントの追加/変更をし、再度 `npx cdk deploy SimpleKendraStack` を実行して、手動で DataSource の Sync を実施します。(デフォルト言語の変更は 1 度行っているため不要です。)
+ドキュメントを追加/変更する場合は、[`/cdk/docs`](/cdk/docs) ディレクトリにてドキュメントの追加/変更をし、再度 `cdk deploy SimpleKendraStack` を実行して、手動で DataSource の Sync を実施します。(デフォルト言語の変更は 1 度行っているため不要です。)
 
 > - 簡単のため、サンプルのドキュメントとしてとしてテキストファイル (`.txt`) を利用していますが、`.pdf` や `.html` などでも取り込めます。サポートされているファイルのフォーマットは[こちら](https://docs.aws.amazon.com/kendra/latest/dg/index-document-types.html)。
 
@@ -72,14 +72,16 @@ Custom Data Source そのものは CDK でデプロイされています。S3 �
 手元の PC で Frontend アプリを実行します。Backend をデプロイしておく必要があるため、CDK のデプロイは完了していることを想定しています。以下のコマンドを実行してください。
 
 ```bash
-export REACT_APP_API_ENDPOINT=<Kendra API Endpoint *1>
-export REACT_APP_IDENTITY_POOL_ID=<Identity Pool ID *2>
-export REACT_APP_REGION=us-east-1
+export REACT_APP_API_ENDPOINT=<Kendra API Endpoint>
+export REACT_APP_IDENTITY_POOL_ID=<Identity Pool ID>
+export REACT_APP_REGION=<Region>
 ```
 
-- *1) `npx cdk deploy SimpleKendraStack` の出力のうち、`SimpleKendraStack.KendraApiEndpointxxxx = ...` の形式で出力された Endpoint に `kendra` の path を追加したものを設定してください。最終的に https://xxxxxxxxxx.execute-api.us-east-1.amazonaws.com/prod/kendra のような値になります。
-- *2) `npx cdk deploy SimpleKendraStack` の出力のうち、`SimpleKendraStack.IdentityPoolId = ...` の形式で出力されたものを設定してください。
-- `npx cdk deploy SimpleKendraStack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleKendraStack から Outputs タブで確認してください。
+- 上記 `<...>` の値は `cdk deploy SimpleKendraStack` の出力を確認して適切な値に書き換えてください。
+  - `<Kendra API Endpoint>` は `SimpleKendraStack.KendraApiEndpointxxxx = ...` の形式で出力された Endpoint に `kendra` の path を追加したものを設定。最終的に https://xxxxxxxxxx.execute-api.region.amazonaws.com/prod/kendra のような値になる。
+  - `<Identity Pool ID>` は `SimpleKendraStack.IdentityPoolId = ...` の値
+  - `<Region>` は CDK でデプロイしたリージョン (例: ap-northeast-1)
+- `cdk deploy SimpleKendraStack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleKendraStack から Outputs タブで確認してください。
 
 続いて、3000 番ポートで待ち受けを開始します。
 
