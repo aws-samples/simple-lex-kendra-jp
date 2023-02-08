@@ -23,19 +23,14 @@ const fetchLatestBotVersion = async (): Promise<number> => {
   }
 };
 
-// 2022/12 現在 Kendra は Tokyo Region はサポートされていない
-const region = 'us-east-1';
 const app = new cdk.App();
 
 (async () => {
-  const kendraStack = new SimpleKendraStack(app, 'SimpleKendraStack', {
-    env: { region },
-  });
+  const kendraStack = new SimpleKendraStack(app, 'SimpleKendraStack');
 
   new SimpleLexV2Stack(app, 'SimpleLexV2Stack', {
     kendraIndex: kendraStack.index,
     latestBotVersion: await fetchLatestBotVersion(),
     autoIncrementBotVersion: true,
-    env: { region },
   });
 })();

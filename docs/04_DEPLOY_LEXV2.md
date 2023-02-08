@@ -4,7 +4,7 @@
 
 ## デプロイメント
 
-基本的な手順は Amazon Kendra プロジェクト時と同様です。以下のコマンドを実行してください。
+基本的な手順は Amazon Kendra プロジェクト時と同様です。以下のコマンドを実行してください。(これに続くドキュメントでは、以下のコマンドを単に `cdk deploy SimpleLexV2Stack` と記述しています。)
 
 ```bash
 npm exec -w cdk -- cdk deploy SimpleLexV2Stack
@@ -48,14 +48,15 @@ Chatbot 左下のマイクのアイコンをクリックすると音声入力で
 export REACT_APP_IDENTITY_POOL_ID=<Identity Pool ID>
 export REACT_APP_BOT_ID=<Bot ID>
 export REACT_APP_BOT_ALIAS_ID=<Bot Alias ID>
-export REACT_APP_REGION=us-east-1
+export REACT_APP_REGION=<Region>
 ```
 
-- 上記 `<...>` の値は `npx cdk deploy SimpleKendraStack` の出力を確認して適切な値に書き換えてください。
+- 上記 `<...>` の値は `cdk deploy SimpleLexV2Stack` の出力を確認して適切な値に書き換えてください。
   - `<Identity Pool ID>` は `SimpleLexV2Stack.IdentityPoolId = ...` の値
   - `<Bot ID>` は `SimpleLexV2Stack.BotId = ...` の値
   - `<Bot Alias ID>` は `SimpleLexV2Stack.BotAliasId = ...` の値
-- `npx cdk deploy SimpleLexV2Stack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleLexV2Stack から Outputs タブで確認してください。
+  - `<Region>` は CDK でデプロイしたリージョン (例: ap-northeast-1)
+- `cdk deploy SimpleLexV2Stack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleLexV2Stack から Outputs タブで確認してください。
 
 続いて、3000 番ポートで待ち受けを開始します。
 
