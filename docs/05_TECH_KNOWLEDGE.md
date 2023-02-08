@@ -48,3 +48,7 @@ Amazon Lex v2 では `AMAZON.KendraSearchIntent` を利用することで、Amaz
 このサンプルプロジェクトでは、検索結果が見つからなかった際に、ヒントとして分かち書きを提案するようにしています。
 
 - [Amazon Kendra がセマンティック検索の言語サポートを拡張](https://aws.amazon.com/jp/about-aws/whats-new/2022/11/amazon-kendra-expanded-language-support-semantic/)
+
+### 開発中に集めた Tips
+
+[こちらのブログ](https://prototyping-blog.com/blog/lex-kendra-dev)に開発中に集めた Tips をまとめています。
