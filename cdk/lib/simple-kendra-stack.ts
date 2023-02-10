@@ -278,14 +278,26 @@ export class SimpleKendraStack extends cdk.Stack {
     new NodejsBuild(this, 'WebKendra', {
       assets: [
         {
-          path: '../web-kendra',
-          exclude: ['build', 'node_modules'],
+          path: '../',
+          exclude: [
+            '.git',
+            'node_modules',
+            'cdk',
+            'docs',
+            'imgs',
+            'web-lexv2',
+            'web-kendra/build',
+            'web-kendra/node_modules',
+          ],
         },
       ],
       destinationBucket: s3BucketInterface,
       distribution: cloudFrontWebDistribution,
-      outputSourceDirectory: 'build',
-      buildCommands: ['npm ci', 'npm run build'],
+      outputSourceDirectory: 'web-kendra/build',
+      buildCommands: [
+        'npm install -w web-kendra',
+        'npm run build -w web-kendra',
+      ],
       buildEnvironment: {
         REACT_APP_API_ENDPOINT: `${kendraApi.url}kendra`,
         REACT_APP_IDENTITY_POOL_ID: identityPool.identityPoolId,

@@ -284,14 +284,26 @@ export class SimpleLexV2Stack extends cdk.Stack {
     new NodejsBuild(this, 'WebLexV2', {
       assets: [
         {
-          path: '../web-lexv2',
-          exclude: ['build', 'node_modules'],
+          path: '../',
+          exclude: [
+            '.git',
+            'node_modules',
+            'cdk',
+            'docs',
+            'imgs',
+            'web-kendra',
+            'web-lexv2/build',
+            'web-lexv2/node_modules',
+          ],
         },
       ],
       destinationBucket: s3BucketInterface,
       distribution: cloudFrontWebDistribution,
-      outputSourceDirectory: 'build',
-      buildCommands: ['npm ci', 'npm run build'],
+      outputSourceDirectory: 'web-lexv2/build',
+      buildCommands: [
+        'npm install -w web-lexv2',
+        'npm run build -w web-lexv2',
+      ],
       buildEnvironment: {
         REACT_APP_BOT_ID: bot.ref,
         REACT_APP_BOT_ALIAS_ID: cdk.Token.asString(
