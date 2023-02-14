@@ -27,10 +27,12 @@ Amazon Lex v2 では `AMAZON.KendraSearchIntent` を利用することで、Amaz
 
 ### AWS CDK (AWS CloudFormation) でデフォルト言語を指定できない件について
 
-[Amazon Kendra プロジェクトのデプロイ](/docs/03_DEPLOY_KENDRA.md) にて記述したように、現状は DataSource と FAQ 作成の際にデフォルトの言語を指定することができません。よって、DataSource は Sync 前に、FAQ は作成前に、UI からデフォルトの言語を指定する必要があります。
+現状は CloudFormation で DataSource と FAQ 作成の際は、デフォルトの言語を指定することができません。日本人のユーザーにとっては、ほとんどの場合、言語を日本語に指定する必要があると思うので、このままではとても不便です。
 
 - [AWS::Kendra::DataSource](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kendra-datasource.html)
 - [AWS::Kendra::Faq](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kendra-faq.html)
+
+そこで、simple-lex-kendra-jp では、Custom Resource を作成しています。([`/cdk/custom-resources`](/cdk/custom-resources))
 
 ### Amazon Kendra で日本語検索する際の Tips
 

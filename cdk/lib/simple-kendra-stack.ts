@@ -9,6 +9,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as idPool from '@aws-cdk/aws-cognito-identitypool-alpha';
 import { NodejsBuild } from 'deploy-time-build';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
+import { DataSource, Faq } from './constructs';
 
 export class SimpleKendraStack extends cdk.Stack {
   public readonly index: kendra.CfnIndex;
@@ -90,33 +91,32 @@ export class SimpleKendraStack extends cdk.Stack {
     );
 
     // S3 Bucket 用の Data Source の作成
-    new kendra.CfnDataSource(this, 'S3DataSource', {
-      indexId: index.ref,
-      name: 's3-data-source',
-      roleArn: s3DataSourceRole.roleArn,
-      type: 'S3',
-      dataSourceConfiguration: {
-        s3Configuration: {
-          bucketName: dataSourceBucket.bucketName,
-          inclusionPrefixes: ['docs'],
+    new DataSource(this, 'DataSourceS3', {
+      IndexId: index.ref,
+      Type: 'S3',
+      LanguageCode: 'ja',
+      Name: 's3-data-source',
+      RoleArn: s3DataSourceRole.roleArn,
+      Configuration: {
+        S3Configuration: {
+          BucketName: dataSourceBucket.bucketName,
+          InclusionPrefixes: ['docs'],
         },
       },
     });
 
     // Custom Data Source 用の Data Source の作成
-    const customDataSource = new kendra.CfnDataSource(
-      this,
-      'CustomDataSource',
-      {
-        indexId: index.ref,
-        name: 'custom-data-source',
-        type: 'CUSTOM',
-      }
-    );
+    const customDataSource = new DataSource(this, 'DataSourceCustom', {
+      IndexId: index.ref,
+      Type: 'CUSTOM',
+      LanguageCode: 'ja',
+      Name: 'custom-data-source',
+    });
 
     // ---
     // FAQ の作成
     // ---
+
     const faqBucket = new s3.Bucket(this, 'FaqBucket', {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
@@ -140,18 +140,17 @@ export class SimpleKendraStack extends cdk.Stack {
       })
     );
 
-    // デフォルト言語を日本語に設定できないため無効化
-    // 現状は手動で対応が必要
-    // new kendra.CfnFaq(this, 'Faq', {
-    //   indexId: index.ref,
-    //   name: 'simple-faq',
-    //   roleArn: faqRole.roleArn,
-    //   s3Path: {
-    //     bucket: faqBucket.bucketName,
-    //     key: 'faq/simple.csv',
-    //   },
-    //   fileFormat: 'CSV',
-    // });
+    new Faq(this, 'SimpleCsvFaq', {
+      IndexId: index.ref,
+      LanguageCode: 'ja',
+      FileFormat: 'CSV',
+      Name: 'simple-faq',
+      RoleArn: faqRole.roleArn,
+      S3Path: {
+        Bucket: faqBucket.bucketName,
+        Key: 'faq/simple.csv',
+      },
+    });
 
     // ---
     // Kendra 用の API を作成
@@ -182,7 +181,7 @@ export class SimpleKendraStack extends cdk.Stack {
         timeout: cdk.Duration.minutes(15),
         environment: {
           INDEX_ID: index.ref,
-          DATA_SOURCE_ID: cdk.Token.asString(customDataSource.getAtt('Id')),
+          DATA_SOURCE_ID: cdk.Token.asString(customDataSource.resource.getAtt('Id')),
         },
       }
     );
@@ -203,7 +202,7 @@ export class SimpleKendraStack extends cdk.Stack {
     syncCustomDataSourceFunc.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        resources: [cdk.Token.asString(customDataSource.getAtt('Arn'))],
+        resources: [cdk.Token.asString(customDataSource.resource.getAtt('Arn'))],
         actions: [
           'kendra:StartDataSourceSyncJob',
           'kendra:StopDataSourceSyncJob',
@@ -311,10 +310,6 @@ export class SimpleKendraStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'DataSourceBucketName', {
       value: dataSourceBucket.bucketName,
-    });
-
-    new cdk.CfnOutput(this, 'FaqBucketName', {
-      value: faqBucket.bucketName,
     });
 
     new cdk.CfnOutput(this, 'KendraIndexId', {

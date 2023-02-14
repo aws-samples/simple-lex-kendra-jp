@@ -1,0 +1,6 @@
+{
+  "name": "custom-resources",
+  "dependencies": {
+    "@aws-sdk/client-kendra": "^3.267.0"
+  }
+}
