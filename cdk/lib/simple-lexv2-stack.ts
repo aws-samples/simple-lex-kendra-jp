@@ -11,7 +11,7 @@ import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
 
 export interface SimpleLexV2StackProps extends cdk.StackProps {
   kendraIndex: kendra.CfnIndex;
-  latestBotVersion: number,
+  latestBotVersion: number;
   autoIncrementBotVersion: boolean;
 }
 
@@ -87,12 +87,13 @@ export class SimpleLexV2Stack extends cdk.Stack {
                     {
                       message: {
                         plainTextMessage: {
-                          value: '対応方法がわかりませんでした。社内ドキュメントを検索します。',
+                          value:
+                            '対応方法がわかりませんでした。社内ドキュメントを検索します。',
                         },
                       },
-                    }
+                    },
                   ],
-                }
+                },
               },
             },
             {
@@ -201,18 +202,23 @@ export class SimpleLexV2Stack extends cdk.Stack {
       ],
     });
 
-    const botVersion = props.latestBotVersion + (props.autoIncrementBotVersion ? 1 : 0);
-    const latestVersion = new lex.CfnBotVersion(this, `BotVersion${botVersion}`, {
-      botId: bot.ref,
-      botVersionLocaleSpecification: [
-        {
-          localeId: 'ja_JP',
-          botVersionLocaleDetails: {
-            sourceBotVersion: 'DRAFT',
+    const botVersion =
+      props.latestBotVersion + (props.autoIncrementBotVersion ? 1 : 0);
+    const latestVersion = new lex.CfnBotVersion(
+      this,
+      `BotVersion${botVersion}`,
+      {
+        botId: bot.ref,
+        botVersionLocaleSpecification: [
+          {
+            localeId: 'ja_JP',
+            botVersionLocaleDetails: {
+              sourceBotVersion: 'DRAFT',
+            },
           },
-        },
-      ],
-    });
+        ],
+      }
+    );
 
     const latestAlias = new lex.CfnBotAlias(this, 'LatestAlias', {
       botId: bot.ref,
@@ -300,10 +306,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
       destinationBucket: s3BucketInterface,
       distribution: cloudFrontWebDistribution,
       outputSourceDirectory: 'web-lexv2/build',
-      buildCommands: [
-        'npm install -w web-lexv2',
-        'npm run build -w web-lexv2',
-      ],
+      buildCommands: ['npm install -w web-lexv2', 'npm run build -w web-lexv2'],
       buildEnvironment: {
         REACT_APP_BOT_ID: bot.ref,
         REACT_APP_BOT_ALIAS_ID: cdk.Token.asString(

@@ -2,9 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import {
-  CreateDataSourceCommandInput,
-} from '@aws-sdk/client-kendra';
+import { CreateDataSourceCommandInput } from '@aws-sdk/client-kendra';
 
 const UUID = 'A424D16E-1EC4-4510-8556-DF20C7D273F3';
 
@@ -16,14 +14,18 @@ export class DataSource extends Construct {
   constructor(scope: Construct, id: string, props: DataSourceProps) {
     super(scope, id);
 
-    const customResourceHandler = new lambda.SingletonFunction(this, 'CustomResourceDataSourceHandler', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      code: lambda.Code.fromAsset('custom-resources'),
-      handler: 'data-source.handler',
-      uuid: UUID,
-      lambdaPurpose: 'CustomResourceDataSource',
-      timeout: cdk.Duration.minutes(15),
-    });
+    const customResourceHandler = new lambda.SingletonFunction(
+      this,
+      'CustomResourceDataSourceHandler',
+      {
+        runtime: lambda.Runtime.NODEJS_18_X,
+        code: lambda.Code.fromAsset('custom-resources'),
+        handler: 'data-source.handler',
+        uuid: UUID,
+        lambdaPurpose: 'CustomResourceDataSource',
+        timeout: cdk.Duration.minutes(15),
+      }
+    );
 
     customResourceHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -38,10 +40,14 @@ export class DataSource extends Construct {
       })
     );
 
-    this.resource = new cdk.CustomResource(this, `CustomResourceDataSource${id}`, {
-      serviceToken: customResourceHandler.functionArn,
-      resourceType: 'Custom::DataSource',
-      properties: props,
-    });
+    this.resource = new cdk.CustomResource(
+      this,
+      `CustomResourceDataSource${id}`,
+      {
+        serviceToken: customResourceHandler.functionArn,
+        resourceType: 'Custom::DataSource',
+        properties: props,
+      }
+    );
   }
 }

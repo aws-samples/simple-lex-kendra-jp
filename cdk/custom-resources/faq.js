@@ -18,11 +18,14 @@ const deleteFaq = async (props) => {
 
 // TypeScript の Pick<_, _> のようなもの
 const copyLimitedKeys = (src, keys) => {
-  return Object.assign({}, ...keys.map(k => {
-    const tmp = {};
-    tmp[k] = src[k];
-    return tmp;
-  }))
+  return Object.assign(
+    {},
+    ...keys.map((k) => {
+      const tmp = {};
+      tmp[k] = src[k];
+      return tmp;
+    })
+  );
 };
 
 const updateStatus = async (event, status, reason, physicalResourceId) => {
@@ -56,54 +59,65 @@ exports.handler = async (event, context) => {
 
   try {
     switch (event.RequestType) {
-    case 'Create':
-      const propsCreate = copyLimitedKeys(event.ResourceProperties, [
-        'ClientToken',
-        'Description',
-        'FileFormat',
-        'IndexId',
-        'LanguageCode',
-        'Name',
-        'RoleArn',
-        'S3Path',
-        'Tags',
-      ]);
+      case 'Create':
+        const propsCreate = copyLimitedKeys(event.ResourceProperties, [
+          'ClientToken',
+          'Description',
+          'FileFormat',
+          'IndexId',
+          'LanguageCode',
+          'Name',
+          'RoleArn',
+          'S3Path',
+          'Tags',
+        ]);
 
-      const res = await createFaq(propsCreate);
+        const res = await createFaq(propsCreate);
 
-      await updateStatus(event, 'SUCCESS', 'Successfully created', res.Id);
-      break
-    case 'Update':
-      const propsUpdate = copyLimitedKeys(event.ResourceProperties, [
-        'ClientToken',
-        'Description',
-        'FileFormat',
-        'IndexId',
-        'LanguageCode',
-        'Name',
-        'RoleArn',
-        'S3Path',
-        'Tags',
-      ]);
+        await updateStatus(event, 'SUCCESS', 'Successfully created', res.Id);
+        break;
+      case 'Update':
+        const propsUpdate = copyLimitedKeys(event.ResourceProperties, [
+          'ClientToken',
+          'Description',
+          'FileFormat',
+          'IndexId',
+          'LanguageCode',
+          'Name',
+          'RoleArn',
+          'S3Path',
+          'Tags',
+        ]);
 
-      // Need to change "Name" of "Description"
-      // Here we add RequestId suffix to the description
-      propsUpdate.Description = (propsUpdate.Description ?? '') + event.RequestId;
+        // Need to change "Name" of "Description"
+        // Here we add RequestId suffix to the description
+        propsUpdate.Description =
+          (propsUpdate.Description ?? '') + event.RequestId;
 
-      const updateCreate = await createFaq(propsUpdate);
+        const updateCreate = await createFaq(propsUpdate);
 
-      await updateStatus(event, 'SUCCESS', 'Successfully updated', updateCreate.Id);
-      break
-    case 'Delete':
-      const propsDelete = copyLimitedKeys(event.ResourceProperties, [
-        'IndexId',
-      ]);
+        await updateStatus(
+          event,
+          'SUCCESS',
+          'Successfully updated',
+          updateCreate.Id
+        );
+        break;
+      case 'Delete':
+        const propsDelete = copyLimitedKeys(event.ResourceProperties, [
+          'IndexId',
+        ]);
 
-      propsDelete.Id = event.PhysicalResourceId;
+        propsDelete.Id = event.PhysicalResourceId;
 
-      await deleteFaq(propsDelete);
-      await updateStatus(event, 'SUCCESS', 'Successfully deleted', propsDelete.Id);
-      break
+        await deleteFaq(propsDelete);
+        await updateStatus(
+          event,
+          'SUCCESS',
+          'Successfully deleted',
+          propsDelete.Id
+        );
+        break;
     }
   } catch (e) {
     console.log('---- Error');
@@ -112,7 +126,12 @@ exports.handler = async (event, context) => {
     if (event.PhysicalResourceId) {
       await updateStatus(event, 'FAILED', e.message, event.PhysicalResourceId);
     } else {
-      await updateStatus(event, 'FAILED', e.message, event.ResourceProperties.IndexId);
+      await updateStatus(
+        event,
+        'FAILED',
+        e.message,
+        event.ResourceProperties.IndexId
+      );
     }
   }
-}
+};

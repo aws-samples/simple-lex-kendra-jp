@@ -40,11 +40,11 @@ SimpleKendraStack.KendraSampleFrontend = ...
 
 ## FAQ の追加/変更 (オプショナル 2)
 
-FAQ を追加/変更するは、[`/cdk/faq`](/cdk/faq/simple.csv) に内容を追加/変更をします。続いて、[`/cdk/lib/simple-kendra-stack.ts`](/cdk/lib/simple-kendra-stack.ts) の `new Faq(...)` の `Name` を `simple-faq` から `simple-faq2` に変更します。その後、`cdk deploy SimpleKendraStack` を実行します。
+FAQ を追加/変更する際は、[`/cdk/faq`](/cdk/faq/simple.csv) に内容を追加/変更をします。続いて、[`/cdk/lib/simple-kendra-stack.ts`](/cdk/lib/simple-kendra-stack.ts) の `new Faq(...)` の `Name` を `simple-faq` から `simple-faq2` に変更します。その後、`cdk deploy SimpleKendraStack` を実行します。
 
 FAQ は作成と同時にデータの取り込みが行われ、データソースにアップデートが入っても、内容はアップデートされません。そのため、データソースにアップデートが入った場合、新しくリソースを作り直す必要があります。`Name` を変更することで、内部的に FAQ の削除/作成を行い、内容のアップデートを行っています。
 
-> - 変更後の名前は `simple-faq2` である必要はありません。変更されていればなんでも良いです。
+> - 変更後の名前は `simple-faq2` である必要はありません。変更されていれば、なんでも良いです。
 
 ## Custom Data Source の追加 (オプショナル 3)
 

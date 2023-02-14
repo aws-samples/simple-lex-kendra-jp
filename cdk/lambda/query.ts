@@ -4,7 +4,7 @@ import { KendraClient, QueryCommand } from '@aws-sdk/client-kendra';
 const INDEX_ID = process.env.INDEX_ID;
 
 exports.handler = async (
-  event: lambda.APIGatewayProxyEvent,
+  event: lambda.APIGatewayProxyEvent
 ): Promise<lambda.APIGatewayProxyResult> => {
   const query = JSON.parse(event.body!).query;
 

@@ -181,7 +181,9 @@ export class SimpleKendraStack extends cdk.Stack {
         timeout: cdk.Duration.minutes(15),
         environment: {
           INDEX_ID: index.ref,
-          DATA_SOURCE_ID: cdk.Token.asString(customDataSource.resource.getAtt('Id')),
+          DATA_SOURCE_ID: cdk.Token.asString(
+            customDataSource.resource.getAtt('Id')
+          ),
         },
       }
     );
@@ -202,7 +204,9 @@ export class SimpleKendraStack extends cdk.Stack {
     syncCustomDataSourceFunc.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        resources: [cdk.Token.asString(customDataSource.resource.getAtt('Arn'))],
+        resources: [
+          cdk.Token.asString(customDataSource.resource.getAtt('Arn')),
+        ],
         actions: [
           'kendra:StartDataSourceSyncJob',
           'kendra:StopDataSourceSyncJob',
