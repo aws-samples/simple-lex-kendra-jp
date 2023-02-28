@@ -82,6 +82,17 @@ npm run start -w web-kendra
 
 自動でブラウザが開いて、Frontend にアクセスできると思います。
 
+## リソースの削除
+
+SimpleKendraStack を削除する場合は、以下のコマンドを実行してください。
+ただし、SimpleKendraStack は後述の手順でも利用するので、Amazon Lex v2 のサンプルもデプロイする場合は、その後に削除することを推奨します。
+
+```bash
+npm exec -w cdk -- cdk destroy SimpleKendraStack
+```
+
+> S3 Bucket 削除時に書き込みが入り、削除に失敗する場合があります。その場合は、[CloudFormation](https://console.aws.amazon.com/cloudformation) にて対象の Bucket を削除対象から外して Stack を削除し、Bucket は別途手動で削除してください。
+
 ## Next Step
 
 [Amazon Lex v2 プロジェクトのデプロイ](/docs/04_DEPLOY_LEXV2.md)

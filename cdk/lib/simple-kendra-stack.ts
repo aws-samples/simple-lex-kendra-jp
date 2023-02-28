@@ -53,6 +53,8 @@ export class SimpleKendraStack extends cdk.Stack {
     const dataSourceBucket = new s3.Bucket(this, 'DataSourceBucket', {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
+      autoDeleteObjects: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     // /docs ディレクトリを Bucket にアップロードする
@@ -120,6 +122,8 @@ export class SimpleKendraStack extends cdk.Stack {
     const faqBucket = new s3.Bucket(this, 'FaqBucket', {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
+      autoDeleteObjects: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
     new s3Deploy.BucketDeployment(this, 'DeployFaq', {
@@ -274,8 +278,18 @@ export class SimpleKendraStack extends cdk.Stack {
           blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
           encryption: s3.BucketEncryption.S3_MANAGED,
           enforceSSL: true,
+          autoDeleteObjects: true,
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
         },
-      }
+        loggingBucketProps: {
+          autoDeleteObjects: true,
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
+        },
+        cloudFrontLoggingBucketProps: {
+          autoDeleteObjects: true,
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
+        },
+      },
     );
 
     new NodejsBuild(this, 'WebKendra', {
