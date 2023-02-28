@@ -283,8 +283,18 @@ export class SimpleLexV2Stack extends cdk.Stack {
           blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
           encryption: s3.BucketEncryption.S3_MANAGED,
           enforceSSL: true,
+          autoDeleteObjects: true,
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
         },
-      }
+        loggingBucketProps: {
+          autoDeleteObjects: true,
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
+        },
+        cloudFrontLoggingBucketProps: {
+          autoDeleteObjects: true,
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
+        },
+      },
     );
 
     new NodejsBuild(this, 'WebLexV2', {

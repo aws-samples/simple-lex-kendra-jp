@@ -66,6 +66,16 @@ npm run start -w web-lexv2
 
 自動でブラウザが開いて、Frontend にアクセスできると思います。
 
+## リソースの削除
+
+SimpleLexV2Stack を削除する場合は、以下のコマンドを実行してください。
+
+```bash
+npm exec -w cdk -- cdk destroy SimpleLexV2Stack
+```
+
+> S3 Bucket 削除時に書き込みが入り、削除に失敗する場合があります。その場合は、[CloudFormation](https://console.aws.amazon.com/cloudformation) にて対象の Bucket を削除対象から外して Stack を削除し、Bucket は別途手動で削除してください。
+
 ## Next Step
 
 [Tech Knowledge](/docs/05_TECH_KNOWLEDGE.md)
