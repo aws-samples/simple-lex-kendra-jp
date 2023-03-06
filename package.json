@@ -10,6 +10,7 @@
   },
   "workspaces": [
     "cdk",
+    "web-sample",
     "web-kendra",
     "web-lexv2"
   ]

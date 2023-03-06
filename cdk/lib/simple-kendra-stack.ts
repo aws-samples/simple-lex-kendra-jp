@@ -11,11 +11,20 @@ import { NodejsBuild } from 'deploy-time-build';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
 import { DataSource, Faq } from './constructs';
 
+interface KendraContext {
+  CustomDataSource: boolean
+  WebCrawler: boolean
+  Faq: boolean
+}
+
 export class SimpleKendraStack extends cdk.Stack {
   public readonly index: kendra.CfnIndex;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    // cdk.json の 'kendra' でデプロイするリソースを制御する
+    const context: KendraContext = this.node.tryGetContext('kendra');
 
     // -----
     // Kendra Index の作成
@@ -46,7 +55,7 @@ export class SimpleKendraStack extends cdk.Stack {
     });
 
     // -----
-    // Kendra Data Source の作成
+    // Kendra S3 Data Source の作成
     // -----
 
     // .pdf や .txt などのドキュメントを格納する S3 Bucket
@@ -107,54 +116,157 @@ export class SimpleKendraStack extends cdk.Stack {
       },
     });
 
-    // Custom Data Source 用の Data Source の作成
-    const customDataSource = new DataSource(this, 'DataSourceCustom', {
-      IndexId: index.ref,
-      Type: 'CUSTOM',
-      LanguageCode: 'ja',
-      Name: 'custom-data-source',
-    });
+    // -----
+    // Kendra Custom Data Source の作成 (cdk.json で opt-in/out 可能)
+    // -----
 
-    // ---
-    // FAQ の作成
-    // ---
+    if (context.CustomDataSource) {
+      const customDataSource = new DataSource(this, 'DataSourceCustom', {
+        IndexId: index.ref,
+        Type: 'CUSTOM',
+        LanguageCode: 'ja',
+        Name: 'custom-data-source',
+      });
 
-    const faqBucket = new s3.Bucket(this, 'FaqBucket', {
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      encryption: s3.BucketEncryption.S3_MANAGED,
-      autoDeleteObjects: true,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-    });
+      const syncCustomDataSourceFunc = new lambda.NodejsFunction(
+        this,
+        'SyncCustomDataSourceFunc',
+        {
+          entry: './lambda/sync-custom-data-source.ts',
+          timeout: cdk.Duration.minutes(15),
+          environment: {
+            INDEX_ID: index.ref,
+            DATA_SOURCE_ID: cdk.Token.asString(
+              customDataSource.resource.getAtt('Id')
+            ),
+          },
+        }
+      );
 
-    new s3Deploy.BucketDeployment(this, 'DeployFaq', {
-      sources: [s3Deploy.Source.asset('./faq')],
-      destinationBucket: faqBucket,
-      destinationKeyPrefix: 'faq',
-    });
+      syncCustomDataSourceFunc.role?.addToPrincipalPolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          resources: [cdk.Token.asString(index.getAtt('Arn'))],
+          actions: [
+            'kendra:StartDataSourceSyncJob',
+            'kendra:StopDataSourceSyncJob',
+            'kendra:BatchPutDocument',
+            'kendra:BatchDeleteDocument',
+          ],
+        })
+      );
 
-    const faqRole = new iam.Role(this, 'FaqRole', {
-      assumedBy: new iam.ServicePrincipal('kendra.amazonaws.com'),
-    });
+      syncCustomDataSourceFunc.role?.addToPrincipalPolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          resources: [
+            cdk.Token.asString(customDataSource.resource.getAtt('Arn')),
+          ],
+          actions: [
+            'kendra:StartDataSourceSyncJob',
+            'kendra:StopDataSourceSyncJob',
+          ],
+        })
+      );
+    }
 
-    faqRole.addToPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        resources: [`arn:aws:s3:::${faqBucket.bucketName}/*`],
-        actions: ['s3:GetObject'],
-      })
-    );
+    // -----
+    // FAQ の作成 (cdk.json で opt-in/out 可能)
+    // -----
 
-    new Faq(this, 'SimpleCsvFaq', {
-      IndexId: index.ref,
-      LanguageCode: 'ja',
-      FileFormat: 'CSV',
-      Name: 'simple-faq',
-      RoleArn: faqRole.roleArn,
-      S3Path: {
-        Bucket: faqBucket.bucketName,
-        Key: 'faq/simple.csv',
-      },
-    });
+    if (context.Faq) {
+      const faqBucket = new s3.Bucket(this, 'FaqBucket', {
+        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+        encryption: s3.BucketEncryption.S3_MANAGED,
+        autoDeleteObjects: true,
+        removalPolicy: cdk.RemovalPolicy.DESTROY,
+      });
+
+      new s3Deploy.BucketDeployment(this, 'DeployFaq', {
+        sources: [s3Deploy.Source.asset('./faq')],
+        destinationBucket: faqBucket,
+        destinationKeyPrefix: 'faq',
+      });
+
+      const faqRole = new iam.Role(this, 'FaqRole', {
+        assumedBy: new iam.ServicePrincipal('kendra.amazonaws.com'),
+      });
+
+      faqRole.addToPolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          resources: [`arn:aws:s3:::${faqBucket.bucketName}/*`],
+          actions: ['s3:GetObject'],
+        })
+      );
+
+      new Faq(this, 'SimpleCsvFaq', {
+        IndexId: index.ref,
+        LanguageCode: 'ja',
+        FileFormat: 'CSV',
+        Name: 'simple-faq',
+        RoleArn: faqRole.roleArn,
+        S3Path: {
+          Bucket: faqBucket.bucketName,
+          Key: 'faq/simple.csv',
+        },
+      });
+    }
+
+    // -----
+    // Web Crawler の作成 (cdk.json で opt-in/out 可能)
+    // -----
+
+    if (context.WebCrawler) {
+      const { cloudFrontWebDistribution, s3BucketInterface } = new CloudFrontToS3(
+        this,
+        'SampleFrontend',
+        {
+          insertHttpSecurityHeaders: false,
+          bucketProps: {
+            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+            encryption: s3.BucketEncryption.S3_MANAGED,
+            enforceSSL: true,
+            autoDeleteObjects: true,
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
+          },
+          loggingBucketProps: {
+            autoDeleteObjects: true,
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
+          },
+          cloudFrontLoggingBucketProps: {
+            autoDeleteObjects: true,
+            removalPolicy: cdk.RemovalPolicy.DESTROY,
+          },
+        },
+      );
+
+      new NodejsBuild(this, 'WebSample', {
+        assets: [
+          {
+            path: '../',
+            exclude: [
+              '.git',
+              'node_modules',
+              'cdk',
+              'docs',
+              'imgs',
+              'web-lexv2',
+              'web-kendra',
+              'web-sample/build',
+              'web-sample/node_modules',
+            ],
+          },
+        ],
+        destinationBucket: s3BucketInterface,
+        distribution: cloudFrontWebDistribution,
+        outputSourceDirectory: 'web-sample/build',
+        buildCommands: [
+          'npm install -w web-sample',
+          'npm run build -w web-sample',
+        ],
+      });
+    }
 
     // ---
     // Kendra 用の API を作成
@@ -174,47 +286,6 @@ export class SimpleKendraStack extends cdk.Stack {
         effect: iam.Effect.ALLOW,
         resources: [cdk.Token.asString(index.getAtt('Arn'))],
         actions: ['kendra:Query'],
-      })
-    );
-
-    const syncCustomDataSourceFunc = new lambda.NodejsFunction(
-      this,
-      'SyncCustomDataSourceFunc',
-      {
-        entry: './lambda/sync-custom-data-source.ts',
-        timeout: cdk.Duration.minutes(15),
-        environment: {
-          INDEX_ID: index.ref,
-          DATA_SOURCE_ID: cdk.Token.asString(
-            customDataSource.resource.getAtt('Id')
-          ),
-        },
-      }
-    );
-
-    syncCustomDataSourceFunc.role?.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        resources: [cdk.Token.asString(index.getAtt('Arn'))],
-        actions: [
-          'kendra:StartDataSourceSyncJob',
-          'kendra:StopDataSourceSyncJob',
-          'kendra:BatchPutDocument',
-          'kendra:BatchDeleteDocument',
-        ],
-      })
-    );
-
-    syncCustomDataSourceFunc.role?.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        resources: [
-          cdk.Token.asString(customDataSource.resource.getAtt('Arn')),
-        ],
-        actions: [
-          'kendra:StartDataSourceSyncJob',
-          'kendra:StopDataSourceSyncJob',
-        ],
       })
     );
 
@@ -302,6 +373,7 @@ export class SimpleKendraStack extends cdk.Stack {
             'cdk',
             'docs',
             'imgs',
+            'web-sample',
             'web-lexv2',
             'web-kendra/build',
             'web-kendra/node_modules',

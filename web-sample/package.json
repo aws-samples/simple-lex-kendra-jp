@@ -1,22 +1,13 @@
 {
-  "name": "web-kendra",
+  "name": "web-sample",
   "private": true,
   "dependencies": {
-    "@aws-sdk/client-cognito-identity": "^3.267.0",
-    "@aws-sdk/client-kendra": "^3.267.0",
-    "@aws-sdk/client-lex-runtime-v2": "^3.267.0",
-    "@aws-sdk/client-s3": "^3.267.0",
-    "@aws-sdk/credential-providers": "^3.267.0",
-    "@aws-sdk/s3-request-presigner": "^3.267.0",
-    "@fortawesome/fontawesome-svg-core": "^6.2.1",
-    "@fortawesome/free-solid-svg-icons": "^6.2.1",
-    "@fortawesome/react-fontawesome": "^0.2.0",
     "@types/node": "^16.18.14",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-hook-form": "^7.42.1",
+    "react-router-dom": "^6.8.2",
     "react-scripts": "5.0.1",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
@@ -42,10 +33,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.4.13",
-    "postcss": "^8.4.20",
-    "tailwindcss": "^3.2.4"
   }
 }

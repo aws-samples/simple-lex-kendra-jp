@@ -307,6 +307,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
             'cdk',
             'docs',
             'imgs',
+            'web-sample',
             'web-kendra',
             'web-lexv2/build',
             'web-lexv2/node_modules',
