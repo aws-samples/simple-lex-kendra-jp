@@ -115,6 +115,44 @@ export class SimpleKendraStack extends cdk.Stack {
       Name: 'custom-data-source',
     });
 
+    // Web Crawler の実装例
+    /*
+    const webCrawlerDataSourceRole = new iam.Role(this, 'WebCrawlerDataSourceRole', {
+      assumedBy: new iam.ServicePrincipal('kendra.amazonaws.com'),
+    });
+
+    webCrawlerDataSourceRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: [cdk.Token.asString(index.getAtt('Arn'))],
+        actions: ['kendra:BatchPutDocument', 'kendra:BatchDeleteDocument'],
+      })
+    );
+
+    new DataSource(this, 'DataSourceWebCrawler', {
+      IndexId: index.ref,
+      Type: 'WEBCRAWLER',
+      LanguageCode: 'ja',
+      Name: 'webcrawler-data-source',
+      RoleArn: webCrawlerDataSourceRole.roleArn,
+      Configuration: {
+        WebCrawlerConfiguration: {
+          // https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/1037
+          // props の型が勝手に変換されてしまう問題がある
+          // CrawlDepth: 1,
+          Urls: {
+            SeedUrlConfiguration: {
+              SeedUrls: [
+                'https://ja.wikipedia.org/wiki/Amazon_Web_Services',
+              ],
+              WebCrawlerMode: 'HOST_ONLY',
+            },
+          },
+        },
+      },
+    });
+    */
+
     // ---
     // FAQ の作成
     // ---
