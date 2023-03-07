@@ -58,7 +58,15 @@ Amazon Kendra は多くの Native connectors を提供しています。([参考
 
 このように、データさえフェッチできれば、基本的にはどのようなドキュメントでも Kendra に追加できます。この Lambda 関数を定期実行にすれば、自動で Indexing を実行することも可能です。また、今回はデータ形式として PLAIN_TEXT を指定していますが、HTML や PPT、PDF など多くのフォーマットにも対応しています。([参考: Types of documents](https://docs.aws.amazon.com/kendra/latest/dg/index-document-types.html))
 
-## 手元で Frontend を動かす (オプショナル 4)
+## Web Crawler の追加 (オプショナル 4)
+
+Web ページをクローリングして、コンテンツを Amazon Kendra の Index に登録します。例として [AWS の Wikipedia](https://ja.wikipedia.org/wiki/Amazon_Web_Services) をクロールします。
+
+なお、Web Crawler についてはデフォルトでデプロイされず、コメントアウトしてあります。[`/cdk/lib/simple-kendra-stack.ts`](/cdk/lib/simple-kendra-stack.ts) を開き、`// Web Crawler の実装例` 以下でコメントアウトされているコードをアンコメントしてください。その後、デプロイコマンドを実行して Amazon Kendra の画面を開き、Data Source に webcrawler-data-source が追加されたことを確認します。最後に右上の Sync now をクリックしてデータを取り込みます。
+
+それらが完了したら、「AWS とは」などで検索を行ってみてください。
+
+## 手元で Frontend を動かす (オプショナル 5)
 
 手元の PC で Frontend アプリを実行します。Backend をデプロイしておく必要があるため、CDK のデプロイは完了していることを想定しています。以下のコマンドを実行してください。
 

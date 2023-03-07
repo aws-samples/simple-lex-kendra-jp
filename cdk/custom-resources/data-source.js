@@ -66,7 +66,7 @@ const updateStatus = async (event, status, reason, physicalResourceId) => {
 };
 
 exports.handler = async (event, context) => {
-  console.log(event);
+  console.log(JSON.stringify(event));
   console.log(context);
 
   try {
