@@ -137,9 +137,7 @@ export class SimpleKendraStack extends cdk.Stack {
       RoleArn: webCrawlerDataSourceRole.roleArn,
       Configuration: {
         WebCrawlerConfiguration: {
-          // https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/1037
-          // props の型が勝手に変換されてしまう問題がある
-          // CrawlDepth: 1,
+          CrawlDepth: 1,
           Urls: {
             SeedUrlConfiguration: {
               SeedUrls: [

@@ -57,10 +57,14 @@ exports.handler = async (event, context) => {
   console.log(event);
   console.log(context);
 
+  const props = JSON.parse(event.ResourceProperties.props);
+
+  console.log(props);
+
   try {
     switch (event.RequestType) {
       case 'Create':
-        const propsCreate = copyLimitedKeys(event.ResourceProperties, [
+        const propsCreate = copyLimitedKeys(props, [
           'ClientToken',
           'Description',
           'FileFormat',
@@ -77,7 +81,7 @@ exports.handler = async (event, context) => {
         await updateStatus(event, 'SUCCESS', 'Successfully created', res.Id);
         break;
       case 'Update':
-        const propsUpdate = copyLimitedKeys(event.ResourceProperties, [
+        const propsUpdate = copyLimitedKeys(props, [
           'ClientToken',
           'Description',
           'FileFormat',
@@ -104,7 +108,7 @@ exports.handler = async (event, context) => {
         );
         break;
       case 'Delete':
-        const propsDelete = copyLimitedKeys(event.ResourceProperties, [
+        const propsDelete = copyLimitedKeys(props, [
           'IndexId',
         ]);
 
