@@ -46,7 +46,11 @@ export class DataSource extends Construct {
       {
         serviceToken: customResourceHandler.functionArn,
         resourceType: 'Custom::DataSource',
-        properties: props,
+        // https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/1037
+        // props の型が勝手に変換されてしまう問題があるため、一旦 json に変換
+        properties: {
+          props: JSON.stringify(props),
+        },
       }
     );
   }
