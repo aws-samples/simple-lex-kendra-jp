@@ -20,6 +20,14 @@ const demoDocuments = [
 
 interface SyncCustomDataSourceProps {}
 
+const fetchData = async () => {
+  const res = await fetch('https://dummyjson.com/products');
+  console.log(res);
+  const data = await res.json();
+  console.log(data);
+  return data;;
+}
+
 exports.handler = async (_props: SyncCustomDataSourceProps): Promise<void> => {
   const kendra = new KendraClient({});
   const startDataSourceSyncJobCommand = new StartDataSourceSyncJobCommand({
@@ -31,12 +39,14 @@ exports.handler = async (_props: SyncCustomDataSourceProps): Promise<void> => {
     startDataSourceSyncJobCommand
   );
   const executionId = startDataSourceSyncJobRes.ExecutionId;
-  const documents = demoDocuments.map((d) => {
+
+  const data: any = await fetchData();
+  const documents = data.products.map((d: any) => {
     return {
-      Id: d.id,
+      Id: d.id.toString(),
       Title: d.title,
-      Blob: new TextEncoder().encode(d.content),
-      ContentType: 'PLAIN_TEXT', // Web コンテンツなら HTML のままの方がベター (汎用的な例として PLAIN_TEXT を採用)
+      Blob: new TextEncoder().encode(d.description),
+      ContentType: 'PLAIN_TEXT',
       Attributes: [
         {
           Key: '_data_source_id',
@@ -53,19 +63,35 @@ exports.handler = async (_props: SyncCustomDataSourceProps): Promise<void> => {
         {
           Key: '_source_uri',
           Value: {
-            StringValue: d.url,
+            StringValue: `https://dummyjson.com/products/${d.id}`,
           },
         },
       ],
-    };
+    }
   });
-  const batchPutDocumentCommand = new BatchPutDocumentCommand({
-    IndexId: INDEX_ID,
-    RoleArn: undefined,
-    Documents: documents,
-    CustomDocumentEnrichmentConfiguration: undefined,
-  });
-  await kendra.send(batchPutDocumentCommand);
+
+  let offset = 0;
+
+  while (true) {
+    const subDocuments = documents.slice(offset, offset + 10);
+
+    console.log('subDocuments', subDocuments.length);
+
+    if (subDocuments.length === 0) {
+      break;
+    }
+
+    const batchPutDocumentCommand = new BatchPutDocumentCommand({
+      IndexId: INDEX_ID,
+      RoleArn: undefined,
+      Documents: subDocuments,
+      CustomDocumentEnrichmentConfiguration: undefined,
+    });
+
+    await kendra.send(batchPutDocumentCommand);
+
+    offset += 10;
+  }
 
   const stopDataSourceSyncJobCommand = new StopDataSourceSyncJobCommand({
     Id: DATA_SOURCE_ID,

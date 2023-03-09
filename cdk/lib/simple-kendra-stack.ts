@@ -4,6 +4,7 @@ import * as kendra from 'aws-cdk-lib/aws-kendra';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3Deploy from 'aws-cdk-lib/aws-s3-deployment';
+import * as s3Notification from 'aws-cdk-lib/aws-s3-notifications';
 import * as agw from 'aws-cdk-lib/aws-apigateway';
 import * as lambda from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as idPool from '@aws-cdk/aws-cognito-identitypool-alpha';
@@ -213,6 +214,36 @@ export class SimpleKendraStack extends cdk.Stack {
         resources: [cdk.Token.asString(index.getAtt('Arn'))],
         actions: ['kendra:Query'],
       })
+    );
+
+    const jsonBucket = new s3.Bucket(this, 'JsonBucket', {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      autoDeleteObjects: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    });
+
+    const syncJsonFunc = new lambda.NodejsFunction(
+      this,
+      'SyncJsonFunc',
+      {
+        runtime: Runtime.NODEJS_18_X,
+        entry: './lambda/sync-s3-json.ts',
+        timeout: cdk.Duration.minutes(15),
+        environment: {
+          INDEX_ID: index.ref,
+          DATA_SOURCE_ID: cdk.Token.asString(
+            customDataSource.resource.getAtt('Id')
+          ),
+          BUCKET: jsonBucket.bucketName,
+        },
+      },
+    );
+
+    jsonBucket.grantRead(syncJsonFunc);
+    jsonBucket.addEventNotification(
+      s3.EventType.OBJECT_CREATED_PUT,
+      new s3Notification.LambdaDestination(syncJsonFunc),
     );
 
     const syncCustomDataSourceFunc = new lambda.NodejsFunction(
