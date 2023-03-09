@@ -8,6 +8,7 @@ import * as kendra from 'aws-cdk-lib/aws-kendra';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import { NodejsBuild } from 'deploy-time-build';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 
 export interface SimpleLexV2StackProps extends cdk.StackProps {
   kendraIndex: kendra.CfnIndex;
@@ -23,6 +24,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
       this,
       'FulfillmentFunction',
       {
+        runtime: Runtime.NODEJS_18_X,
         entry: './lambda/lex-fulfillment.ts',
         timeout: cdk.Duration.minutes(3),
         environment: {
