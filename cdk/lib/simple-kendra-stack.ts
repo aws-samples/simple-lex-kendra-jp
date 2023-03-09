@@ -10,6 +10,7 @@ import * as idPool from '@aws-cdk/aws-cognito-identitypool-alpha';
 import { NodejsBuild } from 'deploy-time-build';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
 import { DataSource, Faq } from './constructs';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 
 export class SimpleKendraStack extends cdk.Stack {
   public readonly index: kendra.CfnIndex;
@@ -197,6 +198,7 @@ export class SimpleKendraStack extends cdk.Stack {
     // ---
 
     const queryFunc = new lambda.NodejsFunction(this, 'QueryFunc', {
+      runtime: Runtime.NODEJS_18_X,
       entry: './lambda/query.ts',
       timeout: cdk.Duration.minutes(3),
       environment: {
@@ -217,6 +219,7 @@ export class SimpleKendraStack extends cdk.Stack {
       this,
       'SyncCustomDataSourceFunc',
       {
+        runtime: Runtime.NODEJS_18_X,
         entry: './lambda/sync-custom-data-source.ts',
         timeout: cdk.Duration.minutes(15),
         environment: {
