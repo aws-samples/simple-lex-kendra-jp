@@ -248,7 +248,8 @@ export class SimpleKendraStack extends cdk.Stack {
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         resources: [
-          cdk.Token.asString(customDataSource.resource.getAtt('Arn')),
+          // cdk.Token.asString(customDataSource.resource.getAtt('Arn')) だと Index ID が undefined になる
+          `${cdk.Token.asString(index.getAtt('Arn'))}/data-source/${cdk.Token.asString(customDataSource.resource.getAtt('Id'))}`,
         ],
         actions: [
           'kendra:StartDataSourceSyncJob',
