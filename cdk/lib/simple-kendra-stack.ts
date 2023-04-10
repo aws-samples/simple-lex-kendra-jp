@@ -193,6 +193,30 @@ export class SimpleKendraStack extends cdk.Stack {
       },
     });
 
+    new Faq(this, 'KendraFaq', {
+      IndexId: index.ref,
+      LanguageCode: 'ja',
+      FileFormat: 'CSV',
+      Name: 'Kendra-faq',
+      RoleArn: faqRole.roleArn,
+      S3Path: {
+        Bucket: faqBucket.bucketName,
+        Key: 'faq/Amazon-Kendra.csv',
+      },
+    });
+
+    new Faq(this, 'LexFaq', {
+      IndexId: index.ref,
+      LanguageCode: 'ja',
+      FileFormat: 'CSV',
+      Name: 'Lex-faq',
+      RoleArn: faqRole.roleArn,
+      S3Path: {
+        Bucket: faqBucket.bucketName,
+        Key: 'faq/Amazon-Lex.csv',
+      },
+    });
+
     // ---
     // Kendra 用の API を作成
     // ---
