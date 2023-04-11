@@ -7,15 +7,23 @@ import * as s3Deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as agw from 'aws-cdk-lib/aws-apigateway';
 import * as lambda from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as idPool from '@aws-cdk/aws-cognito-identitypool-alpha';
+import * as logs from 'aws-cdk-lib/aws-logs';
+import * as waf from 'aws-cdk-lib/aws-wafv2';
+import { GeoRestriction } from 'aws-cdk-lib/aws-cloudfront';
 import { NodejsBuild } from 'deploy-time-build';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
-import { DataSource, Faq } from './constructs';
+import { DataSource, Faq, CommonWebAcl } from './constructs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { NagSuppressions } from 'cdk-nag';
+
+export interface SimpleKendraStackProps extends cdk.StackProps {
+  webAclCloudFront: waf.CfnWebACL;
+}
 
 export class SimpleKendraStack extends cdk.Stack {
   public readonly index: kendra.CfnIndex;
 
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: SimpleKendraStackProps) {
     super(scope, id, props);
 
     // -----
@@ -56,6 +64,8 @@ export class SimpleKendraStack extends cdk.Stack {
       encryption: s3.BucketEncryption.S3_MANAGED,
       autoDeleteObjects: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+      serverAccessLogsPrefix: 'logs',
+      enforceSSL: true,
     });
 
     // /docs ディレクトリを Bucket にアップロードする
@@ -94,7 +104,7 @@ export class SimpleKendraStack extends cdk.Stack {
     );
 
     // S3 Bucket 用の Data Source の作成
-    new DataSource(this, 'DataSourceS3', {
+    const s3DataSource = new DataSource(this, 'DataSourceS3', {
       IndexId: index.ref,
       Type: 'S3',
       LanguageCode: 'ja',
@@ -117,7 +127,6 @@ export class SimpleKendraStack extends cdk.Stack {
     });
 
     // Web Crawler の実装例
-    /*
     const webCrawlerDataSourceRole = new iam.Role(this, 'WebCrawlerDataSourceRole', {
       assumedBy: new iam.ServicePrincipal('kendra.amazonaws.com'),
     });
@@ -130,7 +139,7 @@ export class SimpleKendraStack extends cdk.Stack {
       })
     );
 
-    new DataSource(this, 'DataSourceWebCrawler', {
+    const webCrawlerDataSource = new DataSource(this, 'DataSourceWebCrawler', {
       IndexId: index.ref,
       Type: 'WEBCRAWLER',
       LanguageCode: 'ja',
@@ -150,7 +159,11 @@ export class SimpleKendraStack extends cdk.Stack {
         },
       },
     });
-    */
+
+    // Kendra の API スロットリングエラーを回避するために
+    // 明示的に依存関係を追加 (逐次作成されるように)
+    customDataSource.node.addDependency(s3DataSource);
+    webCrawlerDataSource.node.addDependency(customDataSource);
 
     // ---
     // FAQ の作成
@@ -161,6 +174,8 @@ export class SimpleKendraStack extends cdk.Stack {
       encryption: s3.BucketEncryption.S3_MANAGED,
       autoDeleteObjects: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+      serverAccessLogsPrefix: 'logs',
+      enforceSSL: true,
     });
 
     new s3Deploy.BucketDeployment(this, 'DeployFaq', {
@@ -181,7 +196,7 @@ export class SimpleKendraStack extends cdk.Stack {
       })
     );
 
-    new Faq(this, 'SimpleCsvFaq', {
+    const simpleFaq = new Faq(this, 'SimpleCsvFaq', {
       IndexId: index.ref,
       LanguageCode: 'ja',
       FileFormat: 'CSV',
@@ -193,7 +208,7 @@ export class SimpleKendraStack extends cdk.Stack {
       },
     });
 
-    new Faq(this, 'KendraFaq', {
+    const kendraFaq = new Faq(this, 'KendraFaq', {
       IndexId: index.ref,
       LanguageCode: 'ja',
       FileFormat: 'CSV',
@@ -205,7 +220,7 @@ export class SimpleKendraStack extends cdk.Stack {
       },
     });
 
-    new Faq(this, 'LexFaq', {
+    const lexFaq = new Faq(this, 'LexFaq', {
       IndexId: index.ref,
       LanguageCode: 'ja',
       FileFormat: 'CSV',
@@ -216,6 +231,11 @@ export class SimpleKendraStack extends cdk.Stack {
         Key: 'faq/Amazon-Lex.csv',
       },
     });
+
+    // Kendra の API スロットリングエラーを回避するために
+    // 明示的に依存関係を追加 (逐次作成されるように)
+    lexFaq.node.addDependency(kendraFaq);
+    kendraFaq.node.addDependency(simpleFaq);
 
     // ---
     // Kendra 用の API を作成
@@ -282,10 +302,17 @@ export class SimpleKendraStack extends cdk.Stack {
       })
     );
 
+    const apiLogGroup = new logs.LogGroup(this, 'KendraApiLog');
+
     const kendraApi = new agw.RestApi(this, 'KendraApi', {
       defaultCorsPreflightOptions: {
         allowOrigins: agw.Cors.ALL_ORIGINS,
         allowMethods: agw.Cors.ALL_METHODS,
+      },
+      deployOptions: {
+        accessLogDestination: new agw.LogGroupLogDestination(apiLogGroup),
+        accessLogFormat: agw.AccessLogFormat.jsonWithStandardFields(),
+        loggingLevel: agw.MethodLoggingLevel.INFO,
       },
     });
 
@@ -307,6 +334,19 @@ export class SimpleKendraStack extends cdk.Stack {
 
     const kendraEndpoint = kendraApi.root.addResource('kendra');
     kendraEndpoint.addMethod('POST', new agw.LambdaIntegration(queryFunc));
+
+    const apiWebAcl = new CommonWebAcl(this, 'KendraApiWebAcl', {
+      scope: 'REGIONAL',
+    });
+
+    const apiId = kendraApi.restApiId;
+    const stageName = kendraApi.deploymentStage.stageName;
+    const restApiArn = `arn:aws:apigateway:${this.region}::/restapis/${apiId}/stages/${stageName}`;
+
+    new waf.CfnWebACLAssociation(this, 'KendraApiWebAclAssociation', {
+      resourceArn: restApiArn,
+      webAclArn: apiWebAcl.webAcl.attrArn,
+    });
 
     // -----
     // Identity Pool の作成
@@ -348,10 +388,16 @@ export class SimpleKendraStack extends cdk.Stack {
         loggingBucketProps: {
           autoDeleteObjects: true,
           removalPolicy: cdk.RemovalPolicy.DESTROY,
+          serverAccessLogsPrefix: 'logs',
         },
         cloudFrontLoggingBucketProps: {
           autoDeleteObjects: true,
           removalPolicy: cdk.RemovalPolicy.DESTROY,
+          serverAccessLogsPrefix: 'logs',
+        },
+        cloudFrontDistributionProps: {
+          geoRestriction: GeoRestriction.allowlist('JP'),
+          webAclId: props.webAclCloudFront.attrArn,
         },
       },
     );
@@ -407,5 +453,36 @@ export class SimpleKendraStack extends cdk.Stack {
     });
 
     this.index = index;
+
+    NagSuppressions.addStackSuppressions(this, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason: 'Managed role is allowed is this case',
+      },
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: 'Wildcard permission is allowed in this case',
+      },
+      {
+        id: 'AwsSolutions-APIG2',
+        reason: 'Validation method for REST API is not required'
+      },
+      {
+        id: 'AwsSolutions-APIG4',
+        reason: 'Authorization is not required for this API',
+      },
+      {
+        id: 'AwsSolutions-COG4',
+        reason: 'Cognito authorizer is not required for this API',
+      },
+      {
+        id: 'AwsSolutions-COG7',
+        reason: 'Unauthorized user is allowed to download file from S3',
+      },
+      {
+        id: 'AwsSolutions-CFR4',
+        reason: 'Allow to use default certificate',
+      },
+    ]);
   }
 }

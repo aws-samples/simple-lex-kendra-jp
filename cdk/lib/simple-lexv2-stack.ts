@@ -6,14 +6,18 @@ import * as lambda from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as idPool from '@aws-cdk/aws-cognito-identitypool-alpha';
 import * as kendra from 'aws-cdk-lib/aws-kendra';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as waf from 'aws-cdk-lib/aws-wafv2';
+import { GeoRestriction } from 'aws-cdk-lib/aws-cloudfront';
 import { NodejsBuild } from 'deploy-time-build';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import { NagSuppressions } from 'cdk-nag';
 
 export interface SimpleLexV2StackProps extends cdk.StackProps {
   kendraIndex: kendra.CfnIndex;
   latestBotVersion: number;
   autoIncrementBotVersion: boolean;
+  webAclCloudFront: waf.CfnWebACL;
 }
 
 export class SimpleLexV2Stack extends cdk.Stack {
@@ -80,7 +84,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
             {
               name: 'FallbackIntent',
               description:
-                'いずれの Intent にも該当しない場合、Kendra をキックする',
+              'いずれの Intent にも該当しない場合、Kendra をキックする',
               parentIntentSignature: 'AMAZON.FallbackIntent',
               fulfillmentCodeHook: { enabled: true },
               initialResponseSetting: {
@@ -90,7 +94,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
                       message: {
                         plainTextMessage: {
                           value:
-                            '対応方法がわかりませんでした。社内ドキュメントを検索します。',
+                          '対応方法がわかりませんでした。社内ドキュメントを検索します。',
                         },
                       },
                     },
@@ -118,7 +122,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
                           message: {
                             plainTextMessage: {
                               value:
-                                'PC の交換を行います。現在ご利用中の PC の種類を教えてください (Mac or Windows)',
+                              'PC の交換を行います。現在ご利用中の PC の種類を教えてください (Mac or Windows)',
                             },
                           },
                         },
@@ -157,7 +161,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
                           message: {
                             plainTextMessage: {
                               value:
-                                '{PickupDate} の何時に新しい {PCType} を受け取りますか？',
+                              '{PickupDate} の何時に新しい {PCType} を受け取りますか？',
                             },
                           },
                         },
@@ -179,7 +183,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
                       message: {
                         plainTextMessage: {
                           value:
-                            '{PCType} は {PickupDate} の {PickupTime} に受け取ることができます。これで良いですか？',
+                          '{PCType} は {PickupDate} の {PickupTime} に受け取ることができます。これで良いですか？',
                         },
                       },
                     },
@@ -291,10 +295,16 @@ export class SimpleLexV2Stack extends cdk.Stack {
         loggingBucketProps: {
           autoDeleteObjects: true,
           removalPolicy: cdk.RemovalPolicy.DESTROY,
+          serverAccessLogsPrefix: 'logs',
         },
         cloudFrontLoggingBucketProps: {
           autoDeleteObjects: true,
           removalPolicy: cdk.RemovalPolicy.DESTROY,
+          serverAccessLogsPrefix: 'logs',
+        },
+        cloudFrontDistributionProps: {
+          geoRestriction: GeoRestriction.allowlist('JP'),
+          webAclId: props.webAclCloudFront.attrArn,
         },
       },
     );
@@ -352,5 +362,36 @@ export class SimpleLexV2Stack extends cdk.Stack {
     new cdk.CfnOutput(this, 'LexV2SampleFrontend', {
       value: `https://${cloudFrontWebDistribution.distributionDomainName}`,
     });
+
+    NagSuppressions.addStackSuppressions(this, [
+      {
+        id: 'AwsSolutions-IAM4',
+        reason: 'Managed role is allowed is this case',
+      },
+      {
+        id: 'AwsSolutions-IAM5',
+        reason: 'Wildcard permission is allowed in this case',
+      },
+      {
+        id: 'AwsSolutions-APIG2',
+        reason: 'Validation method for REST API is not required'
+      },
+      {
+        id: 'AwsSolutions-APIG4',
+        reason: 'Authorization is not required for this API',
+      },
+      {
+        id: 'AwsSolutions-COG4',
+        reason: 'Cognito authorizer is not required for this API',
+      },
+      {
+        id: 'AwsSolutions-COG7',
+        reason: 'Unauthorized user is allowed to call Lex and Transcribe API',
+      },
+      {
+        id: 'AwsSolutions-CFR4',
+        reason: 'Allow to use default certificate',
+      },
+    ]);
   }
 }
