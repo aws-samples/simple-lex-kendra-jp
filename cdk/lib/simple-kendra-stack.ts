@@ -127,9 +127,13 @@ export class SimpleKendraStack extends cdk.Stack {
     });
 
     // Web Crawler の実装例
-    const webCrawlerDataSourceRole = new iam.Role(this, 'WebCrawlerDataSourceRole', {
-      assumedBy: new iam.ServicePrincipal('kendra.amazonaws.com'),
-    });
+    const webCrawlerDataSourceRole = new iam.Role(
+      this,
+      'WebCrawlerDataSourceRole',
+      {
+        assumedBy: new iam.ServicePrincipal('kendra.amazonaws.com'),
+      }
+    );
 
     webCrawlerDataSourceRole.addToPolicy(
       new iam.PolicyStatement({
@@ -150,9 +154,7 @@ export class SimpleKendraStack extends cdk.Stack {
           CrawlDepth: 1,
           Urls: {
             SeedUrlConfiguration: {
-              SeedUrls: [
-                'https://ja.wikipedia.org/wiki/Amazon_Web_Services',
-              ],
+              SeedUrls: ['https://ja.wikipedia.org/wiki/Amazon_Web_Services'],
               WebCrawlerMode: 'HOST_ONLY',
             },
           },
@@ -293,7 +295,11 @@ export class SimpleKendraStack extends cdk.Stack {
         effect: iam.Effect.ALLOW,
         resources: [
           // cdk.Token.asString(customDataSource.resource.getAtt('Arn')) だと Index ID が undefined になる
-          `${cdk.Token.asString(index.getAtt('Arn'))}/data-source/${cdk.Token.asString(customDataSource.resource.getAtt('Id'))}`,
+          `${cdk.Token.asString(
+            index.getAtt('Arn')
+          )}/data-source/${cdk.Token.asString(
+            customDataSource.resource.getAtt('Id')
+          )}`,
         ],
         actions: [
           'kendra:StartDataSourceSyncJob',
@@ -399,7 +405,7 @@ export class SimpleKendraStack extends cdk.Stack {
           geoRestriction: GeoRestriction.allowlist('JP'),
           webAclId: props.webAclCloudFront.attrArn,
         },
-      },
+      }
     );
 
     new NodejsBuild(this, 'WebKendra', {
@@ -465,7 +471,7 @@ export class SimpleKendraStack extends cdk.Stack {
       },
       {
         id: 'AwsSolutions-APIG2',
-        reason: 'Validation method for REST API is not required'
+        reason: 'Validation method for REST API is not required',
       },
       {
         id: 'AwsSolutions-APIG4',

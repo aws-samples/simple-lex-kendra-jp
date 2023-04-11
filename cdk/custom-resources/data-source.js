@@ -119,9 +119,7 @@ exports.handler = async (event, context) => {
         );
         break;
       case 'Delete':
-        const propsDelete = copyLimitedKeys(props, [
-          'IndexId',
-        ]);
+        const propsDelete = copyLimitedKeys(props, ['IndexId']);
 
         propsDelete.Id = event.PhysicalResourceId;
 

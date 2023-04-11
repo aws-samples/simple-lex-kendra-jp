@@ -2,7 +2,7 @@ import { Construct } from 'constructs';
 import * as waf from 'aws-cdk-lib/aws-wafv2';
 
 export interface CommonWebAclProps {
-  scope: 'REGIONAL' | 'CLOUDFRONT',
+  scope: 'REGIONAL' | 'CLOUDFRONT';
 }
 
 export class CommonWebAcl extends Construct {

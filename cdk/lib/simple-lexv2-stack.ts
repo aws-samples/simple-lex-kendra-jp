@@ -84,7 +84,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
             {
               name: 'FallbackIntent',
               description:
-              'いずれの Intent にも該当しない場合、Kendra をキックする',
+                'いずれの Intent にも該当しない場合、Kendra をキックする',
               parentIntentSignature: 'AMAZON.FallbackIntent',
               fulfillmentCodeHook: { enabled: true },
               initialResponseSetting: {
@@ -94,7 +94,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
                       message: {
                         plainTextMessage: {
                           value:
-                          '対応方法がわかりませんでした。社内ドキュメントを検索します。',
+                            '対応方法がわかりませんでした。社内ドキュメントを検索します。',
                         },
                       },
                     },
@@ -122,7 +122,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
                           message: {
                             plainTextMessage: {
                               value:
-                              'PC の交換を行います。現在ご利用中の PC の種類を教えてください (Mac or Windows)',
+                                'PC の交換を行います。現在ご利用中の PC の種類を教えてください (Mac or Windows)',
                             },
                           },
                         },
@@ -161,7 +161,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
                           message: {
                             plainTextMessage: {
                               value:
-                              '{PickupDate} の何時に新しい {PCType} を受け取りますか？',
+                                '{PickupDate} の何時に新しい {PCType} を受け取りますか？',
                             },
                           },
                         },
@@ -183,7 +183,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
                       message: {
                         plainTextMessage: {
                           value:
-                          '{PCType} は {PickupDate} の {PickupTime} に受け取ることができます。これで良いですか？',
+                            '{PCType} は {PickupDate} の {PickupTime} に受け取ることができます。これで良いですか？',
                         },
                       },
                     },
@@ -306,7 +306,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
           geoRestriction: GeoRestriction.allowlist('JP'),
           webAclId: props.webAclCloudFront.attrArn,
         },
-      },
+      }
     );
 
     new NodejsBuild(this, 'WebLexV2', {
@@ -374,7 +374,7 @@ export class SimpleLexV2Stack extends cdk.Stack {
       },
       {
         id: 'AwsSolutions-APIG2',
-        reason: 'Validation method for REST API is not required'
+        reason: 'Validation method for REST API is not required',
       },
       {
         id: 'AwsSolutions-APIG4',
