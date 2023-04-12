@@ -25,6 +25,10 @@ Amazon Kendra のプロジェクトでは、検索フォームから直接社内
 - [4. Amazon Lex v2 プロジェクトのデプロイ](/docs/04_DEPLOY_LEXV2.md)
 - [5. Tech Knowledge](/docs/05_TECH_KNOWLEDGE.md)
 
+## Architecture
+
+![](/imgs/arch.drawio.png)
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
