@@ -295,11 +295,13 @@ export class SimpleLexV2Stack extends cdk.Stack {
         loggingBucketProps: {
           autoDeleteObjects: true,
           removalPolicy: cdk.RemovalPolicy.DESTROY,
+          objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
           serverAccessLogsPrefix: 'logs',
         },
         cloudFrontLoggingBucketProps: {
           autoDeleteObjects: true,
           removalPolicy: cdk.RemovalPolicy.DESTROY,
+          objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
           serverAccessLogsPrefix: 'logs',
         },
         cloudFrontDistributionProps: {

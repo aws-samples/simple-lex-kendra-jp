@@ -64,6 +64,7 @@ export class SimpleKendraStack extends cdk.Stack {
       encryption: s3.BucketEncryption.S3_MANAGED,
       autoDeleteObjects: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+      objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
       serverAccessLogsPrefix: 'logs',
       enforceSSL: true,
     });
@@ -176,6 +177,7 @@ export class SimpleKendraStack extends cdk.Stack {
       encryption: s3.BucketEncryption.S3_MANAGED,
       autoDeleteObjects: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+      objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
       serverAccessLogsPrefix: 'logs',
       enforceSSL: true,
     });
@@ -392,11 +394,13 @@ export class SimpleKendraStack extends cdk.Stack {
           removalPolicy: cdk.RemovalPolicy.DESTROY,
         },
         loggingBucketProps: {
+          objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
           autoDeleteObjects: true,
           removalPolicy: cdk.RemovalPolicy.DESTROY,
           serverAccessLogsPrefix: 'logs',
         },
         cloudFrontLoggingBucketProps: {
+          objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
           autoDeleteObjects: true,
           removalPolicy: cdk.RemovalPolicy.DESTROY,
           serverAccessLogsPrefix: 'logs',
