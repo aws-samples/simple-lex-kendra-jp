@@ -1,0 +1,12 @@
+[
+  {
+    "keyPrefix": "s3://simplekendraauthstack-datasourcebucket9fa93e04-1rtroh5zv1xdc/docs/admin-only",
+    "aclEntries": [
+      {
+        "Name": "KendraAdmin",
+        "Type": "GROUP",
+        "Access": "ALLOW"
+      }
+    ]
+  }
+]
