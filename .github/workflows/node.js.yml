@@ -4,13 +4,12 @@
 name: Node.js CI
 
 on:
-  push:
-    branches: ['main']
   pull_request:
     branches: ['main']
 
 jobs:
-  build:
+  test-synth:
+    name: Test CDK synth
     runs-on: ubuntu-latest
 
     strategy:
