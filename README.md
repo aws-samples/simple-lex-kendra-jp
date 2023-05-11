@@ -1,3 +1,5 @@
+hoge
+
 # Simple Lex Kendra JP
 
 > The project is optimized for Japanese.
