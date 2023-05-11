@@ -11,11 +11,41 @@ export class CommonWebAcl extends Construct {
   constructor(scope: Construct, id: string, props: CommonWebAclProps) {
     super(scope, id);
 
-    const wafIPSet = new waf.CfnIPSet(this, `IPSet${id}`, {
-      name: `IpSet${id}`,
+    const wafIPv4Set = new waf.CfnIPSet(this, `IPv4Set${id}`, {
+      name: `IPv4Set${id}`,
       ipAddressVersion: 'IPV4',
       scope: props.scope,
       addresses: ['0.0.0.0/1', '128.0.0.0/1'],
+    });
+
+    const wafIPv6Set = new waf.CfnIPSet(this, `IPv6Set${id}`, {
+      name: `IPv6Set${id}`,
+      ipAddressVersion: 'IPV6',
+      scope: props.scope,
+      addresses: [
+        '0000:0000:0000:0000:0000:0000:0000:0000/1',
+        '8000:0000:0000:0000:0000:0000:0000:0000/1',
+      ],
+    });
+
+    const generateIpSetRule = (
+      priority: number,
+      name: string,
+      ipSetArn: string
+    ) => ({
+      priority,
+      name,
+      action: { allow: {} },
+      visibilityConfig: {
+        sampledRequestsEnabled: true,
+        cloudWatchMetricsEnabled: true,
+        metricName: name,
+      },
+      statement: {
+        ipSetReferenceStatement: {
+          arn: ipSetArn,
+        },
+      },
     });
 
     const webAcl = new waf.CfnWebACL(this, `WebAcl${id}`, {
@@ -28,21 +58,8 @@ export class CommonWebAcl extends Construct {
         metricName: `WebAcl${id}`,
       },
       rules: [
-        {
-          priority: 1,
-          name: `IpSetRule${id}`,
-          action: { allow: {} },
-          visibilityConfig: {
-            sampledRequestsEnabled: true,
-            cloudWatchMetricsEnabled: true,
-            metricName: `IpSetRule${id}`,
-          },
-          statement: {
-            ipSetReferenceStatement: {
-              arn: wafIPSet.attrArn,
-            },
-          },
-        },
+        generateIpSetRule(1, `IpV4SetRule${id}`, wafIPv4Set.attrArn),
+        generateIpSetRule(2, `IpV6SetRule${id}`, wafIPv6Set.attrArn),
       ],
     });
 
