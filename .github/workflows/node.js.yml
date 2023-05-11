@@ -26,4 +26,4 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
       - run: npm ci -w cdk
-      - run: npm ci -w cdk -- cdk synth
+      - run: npm exec -w cdk -- cdk synth
