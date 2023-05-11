@@ -394,6 +394,10 @@ export class SimpleLexV2Stack extends cdk.Stack {
         id: 'AwsSolutions-CFR4',
         reason: 'Allow to use default certificate',
       },
+      {
+        id: 'AwsSolutions-CB4',
+        reason: 'KMS is not used, because Codebuild is encrypted by default',
+      },
     ]);
   }
 }
