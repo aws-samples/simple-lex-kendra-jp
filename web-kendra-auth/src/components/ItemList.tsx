@@ -46,7 +46,7 @@ function ItemList() {
 
   return (
     <div className="flex flex-col items-center">
-      <h1 className="text-4xl my-6 text-gray-600">Kendra 検索サンプル</h1>
+      <h1 className="text-4xl my-6 text-gray-600">Kendra Auth 検索サンプル</h1>
 
       <form
         className="flex items-center border border-gray-400 rounded-full py-2 px-2 w-1/2 mb-8"

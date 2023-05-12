@@ -38,7 +38,7 @@ export class SimpleKendraAuthStack extends cdk.Stack {
     // -----
 
     // Cognito UserPool を作成（サービスを利用するユーザアカウントのプール）
-    const userPool = new cognito.UserPool(this, 'UserPool', {
+    const userPool = new cognito.UserPool(this, 'KendraUserPool', {
       advancedSecurityMode: cognito.AdvancedSecurityMode.ENFORCED,
       // ユーザー登録機能を無効化
       selfSignUpEnabled: false,
@@ -134,10 +134,28 @@ export class SimpleKendraAuthStack extends cdk.Stack {
       enforceSSL: true,
     });
 
+    // [Auth 拡張実装] デプロイするまで S3 バケット名がわからないため、プログラムの中で動的に JSON ファイルを生成する
+    // S3 バケット名がわかっている場合は、静的な JSON ファイルを用意することで問題ありません
+    const s3AclJson = [
+      {
+        keyPrefix: `s3://${dataSourceBucket.bucketName}/docs/admin-only`,
+        aclEntries: [
+          {
+            Name: 'KendraAdmin',
+            Type: 'GROUP',
+            Access: 'ALLOW',
+          },
+        ],
+      },
+    ];
+
     // /docs ディレクトリを Bucket にアップロードする
     // [Auth 拡張実装] アクセスコントロール確認のために、管理者しか見れないドキュメントを別途用意しています。
     new s3Deploy.BucketDeployment(this, 'DeployDocs', {
-      sources: [s3Deploy.Source.asset('./docs-auth')],
+      sources: [
+        s3Deploy.Source.asset('./docs-auth'),
+        s3Deploy.Source.data('/s3-acl.json', JSON.stringify(s3AclJson)),
+      ],
       destinationBucket: dataSourceBucket,
     });
 
@@ -486,7 +504,7 @@ export class SimpleKendraAuthStack extends cdk.Stack {
       }
     );
 
-    new NodejsBuild(this, 'WebKendra', {
+    new NodejsBuild(this, 'WebKendraAuth', {
       assets: [
         {
           path: '../',
@@ -497,23 +515,26 @@ export class SimpleKendraAuthStack extends cdk.Stack {
             'docs',
             'imgs',
             'web-lexv2',
-            'web-kendra/build',
-            'web-kendra/node_modules',
+            'web-kendra',
+            'web-kendra-auth/build',
+            'web-kendra-auth/node_modules',
           ],
         },
       ],
       destinationBucket: s3BucketInterface,
       distribution: cloudFrontWebDistribution,
-      outputSourceDirectory: 'web-kendra/build',
+      outputSourceDirectory: 'web-kendra-auth/build',
       buildCommands: [
-        'npm install -w web-kendra',
-        'npm run build -w web-kendra',
+        'npm install -w web-kendra-auth',
+        'npm run build -w web-kendra-auth',
       ],
       buildEnvironment: {
         REACT_APP_API_ENDPOINT: `${kendraApi.url}kendra`,
         REACT_APP_IDENTITY_POOL_ID: identityPool.identityPoolId,
         REACT_APP_REGION: this.region,
         // [Auth 拡張実装] Cognito の環境情報を設定
+        REACT_APP_USER_POOL_ID: userPool.userPoolId,
+        REACT_APP_USER_POOL_CLIENT_ID: userPoolClient.userPoolClientId,
       },
     });
 

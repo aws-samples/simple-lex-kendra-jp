@@ -423,6 +423,7 @@ export class SimpleKendraStack extends cdk.Stack {
             'docs',
             'imgs',
             'web-lexv2',
+            'web-kendra-auth',
             'web-kendra/build',
             'web-kendra/node_modules',
           ],

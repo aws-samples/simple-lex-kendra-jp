@@ -24,8 +24,20 @@ function App() {
 
   return (
     <>
-      <Authenticator>
-        {({ signOut, user }) => (
+      <Authenticator
+        components={{
+          Header: () => {
+            return (
+              <div className="flex justify-center">
+                <h1 className="text-4xl my-6 text-gray-600">
+                  Kendra Auth サンプル
+                </h1>
+              </div>
+            );
+          },
+        }}
+      >
+        {({ signOut }) => (
           <>
             <Menu onSignOut={signOut ?? (() => {})} />
             <ItemList />
