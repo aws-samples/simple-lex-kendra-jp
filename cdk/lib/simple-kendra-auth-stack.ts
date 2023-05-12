@@ -40,8 +40,8 @@ export class SimpleKendraAuthStack extends cdk.Stack {
     // Cognito UserPool を作成（サービスを利用するユーザアカウントのプール）
     const userPool = new cognito.UserPool(this, 'KendraUserPool', {
       advancedSecurityMode: cognito.AdvancedSecurityMode.ENFORCED,
-      // ユーザー登録機能を無効化
-      selfSignUpEnabled: false,
+      // フロントエンドからユーザー登録を許可
+      selfSignUpEnabled: true,
       // メールアドレスをユーザー ID に設定
       signInAliases: {
         email: true,
