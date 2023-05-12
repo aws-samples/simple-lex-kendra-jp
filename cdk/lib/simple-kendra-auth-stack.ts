@@ -389,6 +389,7 @@ export class SimpleKendraAuthStack extends cdk.Stack {
       defaultCorsPreflightOptions: {
         allowOrigins: agw.Cors.ALL_ORIGINS,
         allowMethods: agw.Cors.ALL_METHODS,
+        allowHeaders: [...agw.Cors.DEFAULT_HEADERS, 'X-Kendra-Access-Token'],
       },
       deployOptions: {
         accessLogDestination: new agw.LogGroupLogDestination(apiLogGroup),
@@ -534,6 +535,15 @@ export class SimpleKendraAuthStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'KendraSampleFrontend', {
       value: `https://${cloudFrontWebDistribution.distributionDomainName}`,
+    });
+
+    // [Auth 拡張実装] Cognito の情報を出力
+    new cdk.CfnOutput(this, 'CognitoUserPoolId', {
+      value: userPool.userPoolId,
+    });
+
+    new cdk.CfnOutput(this, 'CognitoUserPoolClientId', {
+      value: userPoolClient.userPoolClientId,
     });
 
     this.index = index;
