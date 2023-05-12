@@ -78,4 +78,5 @@ npm exec -w cdk -- cdk destroy SimpleLexV2Stack
 
 ## Next Step
 
-[Tech Knowledge](/docs/05_TECH_KNOWLEDGE.md)
+[(任意) Amazon Kendra Auth プロジェクトのデプロイ](/docs/05_DEPLOY_KENDRA_AUTH.md)  
+[Tech Knowledge](/docs/06_TECH_KNOWLEDGE.md)
