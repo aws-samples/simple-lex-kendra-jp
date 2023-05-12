@@ -1,5 +1,5 @@
 import { SignOut } from '@aws-amplify/ui-react/dist/types/components/Authenticator/Authenticator';
-import { faBars } from '@fortawesome/free-solid-svg-icons';
+import { faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useRef, useState } from 'react';
 import { useEffect } from 'react';
@@ -15,7 +15,7 @@ const Menu: React.FC<Props> = ({ onSignOut }) => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const { userGroup } = useLoginUser();
+  const { userGroup, email } = useLoginUser();
 
   useEffect(() => {
     // メニューの外側をクリックした際のハンドリング
@@ -42,20 +42,25 @@ const Menu: React.FC<Props> = ({ onSignOut }) => {
       <div className="flex justify-end">
         <button
           ref={buttonRef}
-          className="bg-transparent hover:bg-gray-200 border border-grey-400 hover:border-transparent rounded-full p-1"
+          className={`bg-transparent ${
+            open ? '' : 'hover:'
+          }bg-gray-200 border border-gray-500 ${
+            open ? '' : 'hover:'
+          }border-transparent py-2 px-4 rounded inline-flex items-center`}
           onClick={() => {
             setOpen(!open);
           }}
         >
+          <span className="">{email}</span>
           <FontAwesomeIcon
-            className="text-sm text-gray-400 ml-1.5 mr-1.5 mt-1.5 mb-0.5"
-            icon={faBars}
+            className="text-sm text-gray-400 ml-2"
+            icon={open ? faCaretDown : faCaretUp}
           />
         </button>
       </div>
 
       {open ? (
-        <div className="flex" ref={menuRef}>
+        <div className="flex justify-end" ref={menuRef}>
           <div className="border border-gray-300 bg-white rounded flex flex-col justify-between leading-normal">
             <div className="p-2 text-gray-700">所属グループ:{userGroup}</div>
             <div className="border-b" />
