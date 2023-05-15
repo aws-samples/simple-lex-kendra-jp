@@ -290,16 +290,24 @@ export class SimpleKendraAuthStack extends cdk.Stack {
     // Identity Pool の作成
     // -----
 
+    // [Auth 拡張実装] 認証済み Cognito Pool ユーザに対して権限を付与する
     const identityPool = new idPool.IdentityPool(
       this,
-      'IdentityPoolForKendra',
+      'IdentityPoolForKendraAuth',
       {
-        allowUnauthenticatedIdentities: true,
+        authenticationProviders: {
+          userPools: [
+            new idPool.UserPoolAuthenticationProvider({
+              userPool,
+              userPoolClient,
+            }),
+          ],
+        },
       }
     );
 
-    // Unauthorized User に以下の権限 (S3) を付与
-    identityPool.unauthenticatedRole.addToPrincipalPolicy(
+    // Authenticated User に以下の権限 (S3) を付与
+    identityPool.authenticatedRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ['s3:GetObject'],

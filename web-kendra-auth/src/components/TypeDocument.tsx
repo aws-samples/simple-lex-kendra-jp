@@ -7,15 +7,19 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers';
 import HighlightText from './HighlightText';
+import useLoginUser from '../lib/useLoginUser';
 
 const IDENTITY_POOL_ID = process.env.REACT_APP_IDENTITY_POOL_ID!;
+const USER_POOL_ID = process.env.REACT_APP_USER_POOL_ID!;
 const REGION = process.env.REACT_APP_REGION!;
+const COGNITO_ID = `cognito-idp.${REGION}.amazonaws.com/${USER_POOL_ID}`;
 
 interface TypeDocumentProps {
   item: QueryResultItem;
 }
 
 function TypeDocument(props: TypeDocumentProps) {
+  const { token } = useLoginUser();
   const { title, body, hasDocumentURI, hasS3DocumentURI, downloadFile } =
     useMemo(() => {
       const title: TextWithHighlights = props.item.DocumentTitle || {
@@ -42,6 +46,10 @@ function TypeDocument(props: TypeDocumentProps) {
           credentials: fromCognitoIdentityPool({
             identityPoolId: IDENTITY_POOL_ID,
             clientConfig: { region: REGION },
+            // [Auth 拡張実装] ログイン情報を付与する
+            logins: {
+              [COGNITO_ID]: token ?? '',
+            },
           }),
         });
 
@@ -63,7 +71,7 @@ function TypeDocument(props: TypeDocumentProps) {
       };
 
       return { title, body, hasDocumentURI, hasS3DocumentURI, downloadFile };
-    }, [props]);
+    }, [props, token]);
 
   return (
     <div className="p-4 w-2/3 mb-3">
