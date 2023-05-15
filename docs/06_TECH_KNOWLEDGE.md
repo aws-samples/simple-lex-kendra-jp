@@ -53,12 +53,9 @@ Amazon S3 ドキュメントのアクセスコントロールは、「メタデ�
 ユーザとグループの属性は Index の TokenConfiguration で変更することが可能です。  
 当サンプルでは、ユーザは `cognito:username` 、グループは `cognito:groups` を指定しています。  
 
-Amazon Kendra の Query を実行する際に、Amazon Cognito が発行したアクセストークンを設定することにより、アクセスコントロールが実行されます。  
-アクセストークンは、`--user-context` の `Token` に設定をしてください。  
+Amazon Kendra の Query を実行する際に、Amazon Cognito が発行した JWT トークン（アクセストークン、ID トークンのどちらでも可）を設定することにより、アクセスコントロールが実行されます。  
+JWT トークンは、`--user-context` の `Token` に設定をしてください。  
 参考：[AWS CLI Referense kendra qurey](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/kendra/query.html)
-
-アクセストークンが未設定の場合は、アクセスコントロールが設定されているファイルはすべて「アクセス拒否」となりますが、アクセスコントロールが設定されていないファイルはすべて「アクセス許可」となります。  
-アクセストークン未発行でも利用可能ですので、「認証不要なゲストユーザ」と「認証必須の機密情報にアクセスできるユーザ」を同一アプリで運用することが可能です。  
 
 ### Amazon Kendra で日本語検索する際の Tips
 
