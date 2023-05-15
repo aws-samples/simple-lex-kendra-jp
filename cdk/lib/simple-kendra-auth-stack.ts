@@ -47,12 +47,15 @@ export class SimpleKendraAuthStack extends cdk.Stack {
         email: true,
         username: false,
       },
+
+      // デモ用のためパスワードポリシーを緩くしています
+      // 本番環境ではより厳格なポリシーにすることを推奨
       passwordPolicy: {
-        minLength: 8, // 以下、パスワードの必須要件の設定
-        requireLowercase: true,
-        requireUppercase: true,
-        requireDigits: true,
-        requireSymbols: true,
+        minLength: 6,
+        requireLowercase: false,
+        requireUppercase: false,
+        requireDigits: false,
+        requireSymbols: false,
       },
 
       // 以下は本番環境では非推奨
@@ -447,6 +450,12 @@ export class SimpleKendraAuthStack extends cdk.Stack {
       {
         id: 'AwsSolutions-CB4',
         reason: 'KMS is not used, because Codebuild is encrypted by default',
+      },
+
+      // FIXME: 本番環境では以下の Suppression の削除を推奨します
+      {
+        id: 'AwsSolutions-COG1',
+        reason: 'Password policy is loose for demo',
       },
     ]);
   }
