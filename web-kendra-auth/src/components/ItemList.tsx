@@ -10,12 +10,9 @@ import TypeAnswer from './TypeAnswer';
 import TypeQuestionAnswer from './TypeQuestionAnswer';
 import TypeNotFound from './TypeNotFound';
 import { QueryResultItem } from '@aws-sdk/client-kendra';
-import { sendQuery } from '../lib/fetcher';
 import { useForm } from 'react-hook-form';
 import './ItemList.css';
-import useLoginUser from '../lib/useLoginUser';
-
-const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT!;
+import useQuery from '../lib/useQuery';
 
 interface Query {
   query: string;
@@ -30,8 +27,8 @@ function ItemList() {
 
   const watchQuery = watch('query', '');
 
-  // [Auth 拡張実装] アクセストークンの設定
-  const { token } = useLoginUser();
+  // [Auth 拡張実装] アクセストークン設定の処理があるため、useQueryを新設
+  const { send } = useQuery();
 
   const onSubmit = async (data: Query) => {
     if (data.query.length === 0) return;
@@ -39,7 +36,7 @@ function ItemList() {
     setQueryOnce(true);
     setLoading(true);
     setItems([]);
-    const items = await sendQuery(API_ENDPOINT, data.query, token);
+    const items = await send(data.query);
     setItems(items);
     setLoading(false);
   };

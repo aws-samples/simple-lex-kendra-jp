@@ -62,7 +62,9 @@ const Menu: React.FC<Props> = ({ onSignOut }) => {
       {open ? (
         <div className="flex justify-end" ref={menuRef}>
           <div className="border border-gray-300 bg-white rounded flex flex-col justify-between leading-normal">
-            <div className="p-2 text-gray-700">所属グループ:{userGroup}</div>
+            <div className="p-2 text-gray-700">
+              所属グループ:{userGroup ?? '[未所属]'}
+            </div>
             <div className="border-b" />
             <div
               className="p-2 hover:bg-gray-200 cursor-pointer text-gray-700"

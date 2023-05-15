@@ -32,7 +32,7 @@ exports.handler = async (
       },
     },
     UserContext: {
-      Token: event.headers['x-kendra-access-token'],
+      Token: event.headers['Authorization'],
     },
   });
 

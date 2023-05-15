@@ -20,9 +20,8 @@ const useLoginUser = () => {
   }, []);
 
   return {
-    token: session?.getAccessToken().getJwtToken() ?? '',
-    userGroup:
-      session?.getAccessToken().payload['cognito:groups'] ?? '[未所属]',
+    token: session?.getIdToken().getJwtToken() ?? null,
+    userGroup: session?.getAccessToken().payload['cognito:groups'] ?? null,
     email: email,
   };
 };

@@ -232,13 +232,12 @@ export class SimpleKendraAuthStack extends cdk.Stack {
       })
     );
 
-    const apiLogGroup = new logs.LogGroup(this, 'KendraApiLog');
+    const apiLogGroup = new logs.LogGroup(this, 'KendraAuthApiLog');
 
-    const kendraApi = new agw.RestApi(this, 'KendraApi', {
+    const kendraApi = new agw.RestApi(this, 'KendraAuthApi', {
       defaultCorsPreflightOptions: {
         allowOrigins: agw.Cors.ALL_ORIGINS,
         allowMethods: agw.Cors.ALL_METHODS,
-        allowHeaders: [...agw.Cors.DEFAULT_HEADERS, 'X-Kendra-Access-Token'],
       },
       deployOptions: {
         accessLogDestination: new agw.LogGroupLogDestination(apiLogGroup),
@@ -263,8 +262,16 @@ export class SimpleKendraAuthStack extends cdk.Stack {
       },
     });
 
+    // [Auth 拡張実装] API Gateway を Cognito オーソライザーを使って認証する
+    const authorizer = new agw.CognitoUserPoolsAuthorizer(this, 'Authorizer', {
+      cognitoUserPools: [userPool],
+    });
+
     const kendraEndpoint = kendraApi.root.addResource('kendra');
-    kendraEndpoint.addMethod('POST', new agw.LambdaIntegration(queryFunc));
+    kendraEndpoint.addMethod('POST', new agw.LambdaIntegration(queryFunc), {
+      authorizationType: agw.AuthorizationType.COGNITO,
+      authorizer,
+    });
 
     const apiWebAcl = new CommonWebAcl(this, 'KendraAuthApiWebAcl', {
       scope: 'REGIONAL',
