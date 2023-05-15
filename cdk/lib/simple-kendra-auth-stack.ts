@@ -216,7 +216,7 @@ export class SimpleKendraAuthStack extends cdk.Stack {
 
     const queryFunc = new lambda.NodejsFunction(this, 'QueryFunc', {
       runtime: Runtime.NODEJS_18_X,
-      entry: './lambda/query.ts',
+      entry: './lambda/query-auth.ts',
       timeout: cdk.Duration.minutes(3),
       environment: {
         INDEX_ID: index.ref,
