@@ -36,6 +36,15 @@ function TypeDocument(props: TypeDocumentProps) {
         props.item.DocumentURI?.startsWith('https://s3.');
 
       const downloadFile = async (event: any): Promise<void> => {
+        // [Auth 拡張実装] JWT トークンが取得できていない場合は処理しない
+        if (!token) {
+          // デモのため、エラー処理は Alert を表示するだけの簡易的な実装
+          alert(
+            '認証トークンが取得できませんでした。サインアウトしてから再度試してみてください。'
+          );
+          return;
+        }
+
         const bucket_keys = new URL(props.item.DocumentURI!).pathname.split(
           '/'
         );
@@ -48,7 +57,7 @@ function TypeDocument(props: TypeDocumentProps) {
             clientConfig: { region: REGION },
             // [Auth 拡張実装] ログイン情報を付与する
             logins: {
-              [COGNITO_ID]: token ?? '',
+              [COGNITO_ID]: token,
             },
           }),
         });
