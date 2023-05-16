@@ -20,20 +20,18 @@ exports.handler = async (
   }
 
   const kendra = new KendraClient({});
-  const queryCommand = new QueryCommand(
-    Object.assign({
-      IndexId: INDEX_ID,
-      QueryText: query,
-      AttributeFilter: {
-        EqualsTo: {
-          Key: '_language_code',
-          Value: {
-            StringValue: 'ja',
-          },
+  const queryCommand = new QueryCommand({
+    IndexId: INDEX_ID,
+    QueryText: query,
+    AttributeFilter: {
+      EqualsTo: {
+        Key: '_language_code',
+        Value: {
+          StringValue: 'ja',
         },
       },
-    })
-  );
+    },
+  });
 
   const queryRes = await kendra.send(queryCommand);
 
