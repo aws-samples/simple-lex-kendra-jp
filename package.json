@@ -11,6 +11,7 @@
   "workspaces": [
     "cdk",
     "web-kendra",
+    "web-kendra-auth",
     "web-lexv2"
   ]
 }

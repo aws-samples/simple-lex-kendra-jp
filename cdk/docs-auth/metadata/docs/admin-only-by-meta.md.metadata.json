@@ -1,0 +1,9 @@
+{
+  "AccessControlList": [
+    {
+      "Name": "KendraAdmin",
+      "Type": "GROUP",
+      "Access": "ALLOW"
+    }
+  ]
+}

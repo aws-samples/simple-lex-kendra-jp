@@ -10,6 +10,7 @@ import {
 } from '@aws-sdk/client-cloudformation';
 import { Aspects } from 'aws-cdk-lib';
 import { AwsSolutionsChecks } from 'cdk-nag';
+import { SimpleKendraAuthStack } from '../lib/simple-kendra-auth-stack';
 
 process.env.overrideWarningsEnabled = 'false';
 
@@ -70,4 +71,18 @@ Aspects.of(app).add(new AwsSolutionsChecks());
   });
 
   lexStack.addDependency(webAclStack);
+
+  const kendraAuthStack = new SimpleKendraAuthStack(
+    app,
+    'SimpleKendraAuthStack',
+    {
+      webAclCloudFront: webAclStack.webAcl,
+      crossRegionReferences: true,
+      env: {
+        region: 'ap-northeast-1',
+      },
+    }
+  );
+
+  kendraStack.addDependency(webAclStack);
 })();
