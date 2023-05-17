@@ -24,8 +24,8 @@ SimpleLexKendra 株式会社という架空の会社のイントラ検索シス�
 - [2. AWS CDK のセットアップ](/docs/02_SETUP_CDK.md)
 - [3. Amazon Kendra プロジェクトのデプロイ](/docs/03_DEPLOY_KENDRA.md)
 - [4. Amazon Lex v2 プロジェクトのデプロイ](/docs/04_DEPLOY_LEXV2.md)
-- [5. (任意) Amazon Kendra Auth プロジェクトのデプロイ](/docs/03_DEPLOY_KENDRA.md)
-- [6. Tech Knowledge](/docs/05_TECH_KNOWLEDGE.md)
+- [5. (任意) Amazon Kendra Auth プロジェクトのデプロイ](/docs/05_DEPLOY_KENDRA_AUTH.md)
+- [6. Tech Knowledge](/docs/06_TECH_KNOWLEDGE.md)
 
 ## Architecture
 
