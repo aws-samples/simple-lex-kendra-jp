@@ -38,12 +38,12 @@ Amazon Lex v2 では `AMAZON.KendraSearchIntent` を利用することで、Amaz
 現状 (2023/05) 、アクセスコントロール機能は Amazon S3 の Data source connection に限り行うことができます。  
 ※ Amazon S3 以外でアクセスコントロールを実現したい場合は、Index を分けて IAM を使って制御する実装が一つの案として考えられます。
 
-Amazon S3 ドキュメントのアクセスコントロールは、「メタデータ使う方法」と「アクセスコントロール設定ファイルを使う方法」の2つがあります。  
+Amazon S3 ドキュメントのアクセスコントロールは、「メタデータ使う方法」と「設定ファイルを使う方法」の2つがあります。  
 * メタデータを使う方法
   * Amazon S3 ドキュメントにはメタデータを設定することができますが、そのメタデータの一つとして `AccessControlList` があります。
   * `AccessControlList` にアクセス条件を設定することで、ファイルごとにアクセスコントロールを行うことができます。
   * 参考：[Amazon S3 document metadata](https://docs.aws.amazon.com/kendra/latest/dg/s3-metadata.html)
-* アクセスコントロール設定ファイルを使う方法
+* 設定ファイルを使う方法
   * アクセスコントロール設定用の JSON ファイルを定義することで、一元的にアクセスコントロールを設定することが可能です。  
   * フォルダ単位での指定も可能ですので、大量のドキュメントに対してアクセスコントロールを行う場合は、こちらの方法が管理しやすいと思います。  
   * `keyPrefix` は `s3://` から始まるフルパスを指定する必要があるのでご注意ください。
@@ -53,9 +53,12 @@ Amazon S3 ドキュメントのアクセスコントロールは、「メタデ�
 ユーザとグループの属性は Index の TokenConfiguration で変更することが可能です。  
 当サンプルでは、ユーザは `cognito:username` 、グループは `cognito:groups` を指定しています。  
 
-Amazon Kendra の Query を実行する際に、Amazon Cognito が発行した JWT トークン（アクセストークン、ID トークンのどちらでも可）を設定することにより、アクセスコントロールが実行されます。  
+Amazon Kendra の Query を実行する際に、Amazon Cognito が発行した JWT トークンを設定することにより、アクセスコントロールが実行されます。  
+※ Cognito のアクセストークンと ID トークンのどちらも利用可能ですが、認証されたユーザの属性（アイデンティティ）を利用することが主な目的ですので、ID トークンを利用する方が適切です。  
 JWT トークンは、`--user-context` の `Token` に設定をしてください。  
 参考：[AWS CLI Referense kendra qurey](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/kendra/query.html)
+
+> [アクセスコントロールについて詳細に解説したブログ](https://prototyping-blog.com/blog/kendra-s3-access-control)
 
 ### Amazon Kendra で日本語検索する際の Tips
 
