@@ -23,7 +23,7 @@
     "@aws-solutions-constructs/aws-cloudfront-s3": "2.39.0",
     "@aws-solutions-constructs/aws-wafwebacl-cloudfront": "2.39.0",
     "aws-cdk-lib": "2.77.0",
-    "cdk-nag": "^2.25.8",
+    "cdk-nag": "2.26.8",
     "constructs": "^10.0.0",
     "deploy-time-build": "^0.3.1",
     "source-map-support": "^0.5.21"
