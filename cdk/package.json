@@ -22,7 +22,7 @@
     "@aws-sdk/client-kendra": "^3.267.0",
     "@aws-solutions-constructs/aws-cloudfront-s3": "2.39.0",
     "@aws-solutions-constructs/aws-wafwebacl-cloudfront": "2.39.0",
-    "aws-cdk-lib": "2.77.0",
+    "aws-cdk-lib": "2.80.0",
     "cdk-nag": "2.26.8",
     "constructs": "^10.0.0",
     "deploy-time-build": "^0.3.1",
