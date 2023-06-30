@@ -10,7 +10,7 @@ AWS CDK を利用したことがないリージョンを使う場合は、1 度�
 npm exec -w cdk -- cdk bootstrap
 ```
 
-本リポジトリは CloudFront の WAF を利用しているため、 `us-east-1` のリージョンにも Bootstrap を行う必要があります（[参考](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-wafv2-webacl.html)）。デフォルトのリージョンが `us-east-1` 以外の場合は、以下の通り `us-east-1` リージョンに対しても Bootstrap を実施してください。
+本リポジトリは CloudFront の WAF を利用しているため、 `us-east-1` のリージョンにも Bootstrap を行う必要があります（[CloudFront の WAF は us-east-1 のみ利用可能](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-wafv2-webacl.html)）。以下の通り `us-east-1` リージョンに対しても Bootstrap を実施してください。
 
 ```bash
 npm exec -w cdk -- cdk bootstrap --region us-east-1
