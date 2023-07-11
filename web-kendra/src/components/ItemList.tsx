@@ -57,6 +57,11 @@ function ItemList() {
 
   const onSubmit = async (data: Query) => {
     if (data.query.length === 0) return;
+    // 検索ワードを書き換えたら、絞り込み条件を初期化
+    if (query !== data.query) {
+      setFilters([]);
+      setFacets([]);
+    }
     setQuery(data.query);
   };
 
