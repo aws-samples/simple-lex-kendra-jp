@@ -1,6 +1,11 @@
 import { QueryResult } from '@aws-sdk/client-kendra';
+import { FilterType } from '../components/FilterResult';
 
-export const sendQuery = async (api: string, query: string) => {
+export const sendQuery = async (
+  api: string,
+  query: string,
+  filters?: FilterType[]
+) => {
   const res = await fetch(api, {
     method: 'POST',
     headers: {
@@ -8,6 +13,7 @@ export const sendQuery = async (api: string, query: string) => {
     },
     body: JSON.stringify({
       query,
+      filters,
     }),
   });
 
