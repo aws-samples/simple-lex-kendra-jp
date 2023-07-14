@@ -10,30 +10,40 @@ function HighlightText(props: HighlightTextProps) {
     const baseText: string = props.textWithHighlights.Text || '';
     const highlights: Highlight[] = props.textWithHighlights.Highlights || [];
 
-    let highlightText = '';
-    let currentHighlight = 0;
+    if (highlights.length === 0) {
+      return <>{baseText}</>;
+    }
 
-    for (let i = 0; i < baseText.length; i++) {
-      if (currentHighlight >= highlights.length) {
-        highlightText += baseText[i];
-      } else {
-        if (i === highlights[currentHighlight].BeginOffset) {
-          highlightText += '<span class="text-emerald-400 font-bold">';
-          highlightText += baseText[i];
-        } else if (i === (highlights[currentHighlight].EndOffset || 0) - 1) {
-          highlightText += baseText[i];
-          highlightText += '</span>';
-          currentHighlight += 1;
-        } else {
-          highlightText += baseText[i];
-        }
+    const nodes: React.ReactNode[] = [];
+    for (let i = 0; i < highlights.length; i++) {
+      //　start 〜 mid がハイライトしない文字列（1つ前の End と Begin の間）
+      // mid 〜 end がハイライトする文字列（Begin と End の間）
+      const start = highlights[i - 1]?.EndOffset ?? 0;
+      const mid = highlights[i]?.BeginOffset ?? baseText.length;
+      const end = highlights[i]?.EndOffset ?? baseText.length;
+
+      nodes.push(
+        <React.Fragment key={`${i}-1`}>
+          {baseText.substring(start, mid)}{' '}
+        </React.Fragment>,
+        <span key={`${i}-2`} className="text-emerald-400 font-bold">
+          {baseText.substring(mid, end)}
+        </span>
+      );
+      // すべてのハイライトを処理したら、残りの文字列をまとめて設定
+      if (i === highlights.length - 1) {
+        nodes.push(
+          <React.Fragment key={`${i}-3`}>
+            {baseText.substring(end)}
+          </React.Fragment>
+        );
       }
     }
 
-    return highlightText;
+    return <>{nodes}</>;
   }, [props]);
 
-  return <span dangerouslySetInnerHTML={{ __html: highlightText }} />;
+  return highlightText;
 }
 
 export default HighlightText;
