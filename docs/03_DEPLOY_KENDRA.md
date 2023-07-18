@@ -66,7 +66,18 @@ Web ページをクローリングして、コンテンツを Amazon Kendra の 
 
 それらが完了したら、「AWS とは」などで検索を行ってみてください。
 
-## 手元で Frontend を動かす (オプショナル 5)
+## Featured Results を試してみる (オプショナル 5)
+
+[Featured Results (注目の検索結果)](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/featured-results.html) とは、特定のクエリを実行したときに、特定のドキュメントを検索結果に表示する機能のことです。利用者に注目して欲しいドキュメントをこちらに登録することで、優先して検索結果を表示したり、強調して検索結果を表示することが可能になります。Featured Results として検索されたドキュメントは、通常の検索結果 (ResultItems) には含まれませんので、ご注意ください（重複して検索されません）。
+
+こちらのサンプルコードでは、Featured Results は以下のように表示されます。
+![picture 0](../img/../imgs/FeaturedResults.png)  
+
+Featured Results は、Amazon Kendra の画面を開き、画面左側の `Featured results` メニューを選択することで登録できます。`Create set` ボタンを押下し、登録画面に進んでください。`Find items to feature` 画面で、Featured Results として表示したいドキュメントを選択してください（AccessControlList を含むメタデータ設定もそのまま引き継がれます）。`Add queries` 画面で登録したクエリが実行されると、Featured Results としてドキュメントが検索されます。
+
+Featured Results は即時反映されるので、ご自身で登録したクエリを実行して確認してみてください。
+
+## 手元で Frontend を動かす (オプショナル 6)
 
 手元の PC で Frontend アプリを実行します。Backend をデプロイしておく必要があるため、CDK のデプロイは完了していることを想定しています。以下のコマンドを実行してください。
 
