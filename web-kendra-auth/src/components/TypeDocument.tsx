@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { TextWithHighlights } from '@aws-sdk/client-kendra';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faFile } from '@fortawesome/free-solid-svg-icons';
+import { faCircleExclamation, faFile } from '@fortawesome/free-solid-svg-icons';
 import { QueryResultItem } from '@aws-sdk/client-kendra';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
@@ -16,6 +16,9 @@ const COGNITO_ID = `cognito-idp.${REGION}.amazonaws.com/${USER_POOL_ID}`;
 
 interface TypeDocumentProps {
   item: QueryResultItem;
+  // Featured Results の場合は、Trueを設定
+  // https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/featured-results.html
+  isFeatured?: boolean;
 }
 
 function TypeDocument(props: TypeDocumentProps) {
@@ -83,7 +86,11 @@ function TypeDocument(props: TypeDocumentProps) {
     }, [props, token]);
 
   return (
-    <div className="p-4 w-2/3 mb-3">
+    <div
+      className={`p-4 w-2/3 mb-3 ${
+        props.isFeatured && 'ring-1 ring-gray-400 rounded'
+      }`}
+    >
       {hasDocumentURI && hasS3DocumentURI && (
         <div
           className="text-xs text-sky-400 flex items-center cursor-pointer mb-1 ml-1 w-fit"
@@ -114,6 +121,13 @@ function TypeDocument(props: TypeDocumentProps) {
       <div className="text-md">
         <HighlightText textWithHighlights={body} />
       </div>
+
+      {props.isFeatured && (
+        <div className="flex justify-end items-center -m-2 text-gray-400 font-bold text-xs">
+          <FontAwesomeIcon className="mr-2" icon={faCircleExclamation} />
+          注目
+        </div>
+      )}
     </div>
   );
 }

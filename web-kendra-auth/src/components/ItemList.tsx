@@ -9,7 +9,7 @@ import TypeDocument from './TypeDocument';
 import TypeAnswer from './TypeAnswer';
 import TypeQuestionAnswer from './TypeQuestionAnswer';
 import TypeNotFound from './TypeNotFound';
-import { QueryResultItem } from '@aws-sdk/client-kendra';
+import { FeaturedResultsItem, QueryResultItem } from '@aws-sdk/client-kendra';
 import { useForm } from 'react-hook-form';
 import './ItemList.css';
 import useQuery from '../lib/useQuery';
@@ -20,6 +20,9 @@ interface Query {
 
 function ItemList() {
   const [items, setItems] = useState<QueryResultItem[]>([]);
+  const [featuredResults, setFeaturedResults] = useState<FeaturedResultsItem[]>(
+    []
+  );
   const [loading, setLoading] = useState(false);
   const [queryOnce, setQueryOnce] = useState(false);
 
@@ -36,8 +39,9 @@ function ItemList() {
     setQueryOnce(true);
     setLoading(true);
     setItems([]);
-    const items = await send(data.query);
-    setItems(items);
+    const result = await send(data.query);
+    setItems(result?.ResultItems ?? []);
+    setFeaturedResults(result?.FeaturedResultsItems ?? []);
     setLoading(false);
   };
 
@@ -72,7 +76,10 @@ function ItemList() {
 
       <div className="w-full border border-b-0 border-gray-400 mb-4" />
 
-      {queryOnce && !loading && items.length === 0 && <TypeNotFound />}
+      {queryOnce &&
+        !loading &&
+        items.length === 0 &&
+        featuredResults.length === 0 && <TypeNotFound />}
 
       {loading && (
         <div>
@@ -82,6 +89,12 @@ function ItemList() {
           />
         </div>
       )}
+
+      {/* 通常の検索結果より先に、FeaturedResultsを表示する */}
+      {!loading &&
+        featuredResults.map((item) => {
+          return <TypeDocument item={item} isFeatured={true} key={item.Id} />;
+        })}
 
       {!loading &&
         items.map((item: QueryResultItem) => {

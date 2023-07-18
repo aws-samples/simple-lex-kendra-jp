@@ -1,3 +1,5 @@
+import { QueryResult } from '@aws-sdk/client-kendra';
+
 export const sendQuery = async (api: string, query: string) => {
   const res = await fetch(api, {
     method: 'POST',
@@ -13,11 +15,7 @@ export const sendQuery = async (api: string, query: string) => {
     throw new Error(`API Error (${res.status})`);
   }
 
-  const items = (await res.json()).ResultItems;
+  const result: QueryResult = await res.json();
 
-  if (!items) {
-    throw new Error(`Items not found`);
-  }
-
-  return items;
+  return result;
 };

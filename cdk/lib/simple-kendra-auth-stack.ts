@@ -224,6 +224,12 @@ export class SimpleKendraAuthStack extends cdk.Stack {
       environment: {
         INDEX_ID: index.ref,
       },
+      bundling: {
+        // Featured Results に対応している aws-sdk を利用するため、aws-sdk をバンドルする形でビルドする
+        // デフォルトだと aws-sdk が ExternalModules として指定されバンドルされず、Lambda デフォルトバージョンの aws-sdk が利用されるようになる
+        // https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/lambda-runtimes.html
+        externalModules: [],
+      },
     });
 
     // Lambda から Kendra を呼び出せるように権限を付与
