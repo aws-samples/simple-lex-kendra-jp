@@ -1,7 +1,7 @@
 {
   "name": "lambda",
   "dependencies": {
-    "@aws-sdk/client-kendra": "^3.350.0",
+    "@aws-sdk/client-kendra": "^3.363.0",
     "@types/aws-lambda": "^8.10.109"
   }
 }
