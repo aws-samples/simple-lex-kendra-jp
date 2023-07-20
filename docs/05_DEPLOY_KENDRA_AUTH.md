@@ -4,13 +4,14 @@
 
 ## 概要
 「Amazon Kendra プロジェクト」では、認証無しで利用できる Kendra のシステムをデプロイしました。  
-「Amazon Kendra Auth プロジェクト」では、認証・認可の機能を確認することができます。  
+「Amazon Kendra Auth プロジェクト」では、認証・認可の機能を確認できます。  
 認証の機能は、[Amplify UI の Authenticator](https://ui.docs.amplify.aws/react/connected-components/authenticator) を利用して実装しています。  
 
 当プロジェクトは、以下の機能を除き「Amazon Kendra プロジェクト」と同様の機能・実装になります。  
 当プロジェクトの独自実装部分については、`[Auth 拡張実装]` というコメントをプログラム中に入れています。  
-* ログイン認証
-* ドキュメントのアクセス制御（管理者グループのみドキュメントにアクセスできる）
+
+- ログイン認証
+- ドキュメントのアクセス制御（管理者グループのみドキュメントにアクセスできる）
 
 ## デプロイメント
 
@@ -47,13 +48,14 @@ SimpleKendraAuthStack.KendraSampleFrontend = ...
 
 [Amazon Cognito](https://console.aws.amazon.com/cognito/home) を開き、`KendraUserPool` から始まるユーザプールを選択してユーザプールの画面を開き、「ユーザ」の欄にある「ユーザを作成」ボタンを押してください。  
 「ユーザを作成」画面が開きますので、以下の条件で管理者と一般ユーザの**合計 2 ユーザ**を登録してください。  
-* 招待メッセージ：「招待を送信しない」を選択
-* E メールアドレス：任意のメールアドレスを入力（存在しないアドレスでも可）
-  * 管理者と一般ユーザで異なるメールアドレスを入力してください。
-* E メールアドレスを検証済みとしてマークする：チェックする
-* 電話番号：入力しない
-* 仮パスワード：「パスワードの設定」を選択
-* パスワード：任意のパスワードを入力（初回サインインで利用します）
+
+- 招待メッセージ：「招待を送信しない」を選択
+- E メールアドレス：任意のメールアドレスを入力（存在しないアドレスでも可）
+  - 管理者と一般ユーザで異なるメールアドレスを入力してください。
+- E メールアドレスを検証済みとしてマークする：チェックする
+- 電話番号：入力しない
+- 仮パスワード：「パスワードの設定」を選択
+- パスワード：任意のパスワードを入力（初回サインインで利用します）
 
 ユーザ登録が完了したら、ユーザグループの登録を行いユーザを管理者権限にします。  
 後の手順で一般ユーザの動作確認を行うので、当手順は 1 ユーザ分だけ実施してください。  
@@ -64,10 +66,11 @@ SimpleKendraAuthStack.KendraSampleFrontend = ...
 
 **補足**  
 上記では、AWS マネージメントコンソールから登録する手順をご紹介しましたが、本プロジェクトはフロントエンドの認証画面を [Amplify UI の Authenticator](https://ui.docs.amplify.aws/react/connected-components/authenticator) で実装しているので、フロントエンドの認証画面からユーザ登録を行うこともできます。  
-認証画面の「アカウントを作る」から、画面に表示される手順に沿って入力することで、ユーザを登録することができます。  
+認証画面の「アカウントを作る」から、画面に表示される手順に沿って入力することで、ユーザを登録できます。  
 ただし、こちらの機能を利用する際は以下についてご注意ください。
-* アカウントを登録する過程で、入力したメールアドレスに送信される確認コードを入力する手順がありますので、実際に受信できるメールアドレスしか利用できません。
-* ユーザグループに所属しない状態で作成されるので、「一般ユーザ」となります。管理者にしたい場合は、上記の手順通り AWS マネージメントコンソールからユーザグループの登録を行なってください。
+
+- アカウントを登録する過程で、入力したメールアドレスに送信される確認コードを入力する手順がありますので、実際に受信できるメールアドレスしか利用できません。
+- ユーザグループに所属しない状態で作成されるので、「一般ユーザ」となります。管理者にしたい場合は、上記の手順通り AWS マネージメントコンソールからユーザグループの登録を行なってください。
 
 
 ## 動作確認
@@ -86,6 +89,8 @@ SimpleKendraAuthStack.KendraSampleFrontend = ...
 
 ## Featured Results を試してみる (オプショナル 1)
 
+こちらは、「Amazon Kendra プロジェクト」の「Featured Results を試してみる」と同じ内容です。
+
 [Featured Results (注目の検索結果)](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/featured-results.html) とは、特定のクエリを実行したときに、特定のドキュメントを検索結果に表示する機能のことです。利用者に注目して欲しいドキュメントをこちらに登録することで、優先して検索結果を表示したり、強調して検索結果を表示することが可能になります。Featured Results として検索されたドキュメントは、通常の検索結果 (ResultItems) には含まれませんので、ご注意ください（重複して検索されません）。
 
 こちらのサンプルコードでは、Featured Results は以下のように表示されます。
@@ -95,7 +100,33 @@ Featured Results は、Amazon Kendra の画面を開き、画面左側の `Featu
 
 Featured Results は即時反映されるので、ご自身で登録したクエリを実行して確認してみてください。
 
-## 手元で Frontend を動かす (オプショナル 2)
+## カスタム属性を利用したフィルタリングを試してみる (オプショナル 2)
+
+こちらは、「Amazon Kendra プロジェクト」の「カスタム属性を利用したフィルタリングを試してみる」と同じ内容です。
+
+Kendra には[カスタム属性を設定する機能](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/custom-attributes.html)があり、検索をより便利にできます。
+
+カスタム属性では、以下のことを実現できます。
+
+- 属性によるフィルタリング（Facet）
+- キーワード検索
+  - カスタム属性でキーワード検索が可能になります。
+  - FAQ では利用不可
+- カスタム属性の表示
+  - カスタム属性がレスポンスに付与されるので、カスタム属性による画面の制御が可能になります。
+- 属性によるソート
+
+カスタム属性の設定は、メタデータ・API・CDK のいずれかで行うことが可能です。当サンプルコードでは、[S3 ドキュメントのメタデータ](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/s3-metadata.html)および[カスタム CSV](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/in-creating-faq.html) でカスタム属性を設定しています。サンプルコードには含まれていませんが、[CreateDataSource の CustomDocumentEnrichmentConfiguration](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/API_CreateDataSource.html) と [BatchPutDocument の Attributes](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/API_BatchPutDocument.html) でも設定することが可能です。
+
+カスタム属性を利用するためには、ドキュメントに対するカスタム属性の設定とは別に、Index にカスタム属性の設定を行う必要があります。[`/cdk/lib/simple-kendra-auth-stack.ts`](/cdk/lib/simple-kendra-auth-stack.ts) を開き、`// カスタム属性の実装例` 以下でコメントアウトされているコードをアンコメントしてください。その後、デプロイコマンドを実行して Amazon Kendra の画面を開き、Facet definition に Tags という属性が設定されたことを確認してください。
+
+**Index に一度カスタム属性を追加すると、削除することはできません。ご注意ください。ただし、Facetable・Searchable・Sisplayable・Sortable をすべて false にすることで無効化することは可能です。**
+
+当サンプルコードでは、カスタム属性の Facetable を true にすると、以下のように画面上でフィルタリングを行うことができます。
+
+![picture 1](../imgs/facet.png)  
+
+## 手元で Frontend を動かす (オプショナル 3)
 
 手元の PC で Frontend アプリを実行します。Backend をデプロイしておく必要があるため、CDK のデプロイは完了していることを想定しています。以下のコマンドを実行してください。
 
