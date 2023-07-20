@@ -1,6 +1,6 @@
 {
   "name": "custom-resources",
   "dependencies": {
-    "@aws-sdk/client-kendra": "^3.352.0"
+    "@aws-sdk/client-kendra": "^3.370.0"
   }
 }
