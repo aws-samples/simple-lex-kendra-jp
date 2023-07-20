@@ -504,6 +504,10 @@ export class SimpleKendraStack extends cdk.Stack {
         id: 'AwsSolutions-CB4',
         reason: 'KMS is not used, because Codebuild is encrypted by default',
       },
+      {
+        id: 'AwsSolutions-L1',
+        reason: 'Using non-latest runtime in aws-cdk-lib/aws-s3-deployment',
+      },
     ]);
   }
 }

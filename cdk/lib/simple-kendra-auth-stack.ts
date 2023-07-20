@@ -457,6 +457,10 @@ export class SimpleKendraAuthStack extends cdk.Stack {
         id: 'AwsSolutions-CB4',
         reason: 'KMS is not used, because Codebuild is encrypted by default',
       },
+      {
+        id: 'AwsSolutions-L1',
+        reason: 'Using non-latest runtime in aws-cdk-lib/aws-s3-deployment',
+      },
 
       // FIXME: 本番環境では以下の Suppression の削除を推奨します
       {
