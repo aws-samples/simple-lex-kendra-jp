@@ -32,7 +32,7 @@ function TypeQuestionAnswer(props: TypeQuestionAnswerProps) {
     }, [props]);
 
   return (
-    <div className="p-4 w-2/3 mb-3">
+    <div className="p-4 mb-3">
       <div className="text-xs text-gray-400 flex items-center mb-1 ml-1">
         <FontAwesomeIcon className="mr-2" icon={faQuestion} />
         <div>よくある質問</div>

@@ -34,7 +34,7 @@ function TypeAnswer(props: TypeAnswerProps) {
   }, [props]);
 
   return (
-    <div className="p-4 w-2/3 mb-3">
+    <div className="p-4 mb-3">
       <div className="text-xs text-gray-400 flex items-center mb-1 ml-1">
         <FontAwesomeIcon
           className="text-xs text-gray-400 mr-2"

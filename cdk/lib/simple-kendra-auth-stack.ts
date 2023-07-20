@@ -105,6 +105,18 @@ export class SimpleKendraAuthStack extends cdk.Stack {
       edition: 'DEVELOPER_EDITION',
       roleArn: indexRole.roleArn,
 
+      documentMetadataConfigurations: [
+        {
+          name: 'Tags',
+          type: 'STRING_LIST_VALUE',
+          search: {
+            facetable: true,
+            displayable: true,
+            searchable: true,
+          },
+        },
+      ],
+
       // [Auth 拡張実装] トークンベースのアクセス制御を実施
       // 参考: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kendra-index.html#cfn-kendra-index-usercontextpolicy
       userContextPolicy: 'USER_TOKEN',
