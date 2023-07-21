@@ -83,19 +83,19 @@ Kendra には[カスタム属性を設定する機能](https://docs.aws.amazon.c
 
 カスタム属性では、以下のことを実現できます。
 
-- 属性によるフィルタリング（Facet）
-- キーワード検索
+- 属性によるフィルタリング（Facetable）
+- キーワード検索（Searchable）
   - カスタム属性でキーワード検索が可能になります。
   - FAQ では利用不可
-- カスタム属性の表示
+- カスタム属性の表示（Displayable）
   - カスタム属性がレスポンスに付与されるので、カスタム属性による画面の制御が可能になります。
-- 属性によるソート
+- 属性によるソート（Sortable）
 
 カスタム属性の設定は、メタデータ・API・CDK のいずれかで行うことが可能です。当サンプルコードでは、[S3 ドキュメントのメタデータ](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/s3-metadata.html)および[カスタム CSV](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/in-creating-faq.html) でカスタム属性を設定しています。サンプルコードには含まれていませんが、[CreateDataSource の CustomDocumentEnrichmentConfiguration](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/API_CreateDataSource.html) と [BatchPutDocument の Attributes](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/API_BatchPutDocument.html) でも設定することが可能です。
 
 カスタム属性を利用するためには、ドキュメントに対するカスタム属性の設定とは別に、Index にカスタム属性の設定を行う必要があります。[`/cdk/lib/simple-kendra-stack.ts`](/cdk/lib/simple-kendra-stack.ts) を開き、`// カスタム属性の実装例` 以下でコメントアウトされているコードをアンコメントしてください。その後、デプロイコマンドを実行して Amazon Kendra の画面を開き、Facet definition に Tags という属性が設定されたことを確認してください。
 
-**Index に一度カスタム属性を追加すると、削除することはできません。ご注意ください。ただし、Facetable・Searchable・Sisplayable・Sortable をすべて false にすることで無効化することは可能です。**
+**Index に一度カスタム属性を追加すると、削除することはできません。ご注意ください。ただし、Facetable・Searchable・Displayable・Sortable をすべて false にすることで無効化することは可能です。**
 
 当サンプルコードでは、カスタム属性の Facetable を true にすると、以下のように画面上でフィルタリングを行うことができます。
 
