@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faSearch,
@@ -9,10 +9,15 @@ import TypeDocument from './TypeDocument';
 import TypeAnswer from './TypeAnswer';
 import TypeQuestionAnswer from './TypeQuestionAnswer';
 import TypeNotFound from './TypeNotFound';
-import { FeaturedResultsItem, QueryResultItem } from '@aws-sdk/client-kendra';
+import {
+  FeaturedResultsItem,
+  QueryResultItem,
+  FacetResult,
+} from '@aws-sdk/client-kendra';
 import { sendQuery } from '../lib/fetcher';
 import { useForm } from 'react-hook-form';
 import './ItemList.css';
+import FilterResult, { FilterType } from './FilterResult';
 
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT!;
 
@@ -21,10 +26,13 @@ interface Query {
 }
 
 function ItemList() {
+  const [query, setQuery] = useState('');
   const [items, setItems] = useState<QueryResultItem[]>([]);
   const [featuredResults, setFeaturedResults] = useState<FeaturedResultsItem[]>(
     []
   );
+  const [facets, setFacets] = useState<FacetResult[]>([]);
+  const [filters, setFilters] = useState<FilterType[]>([]);
   const [loading, setLoading] = useState(false);
   const [queryOnce, setQueryOnce] = useState(false);
 
@@ -32,17 +40,33 @@ function ItemList() {
 
   const watchQuery = watch('query', '');
 
+  useEffect(() => {
+    if (query) {
+      setQueryOnce(true);
+      setLoading(true);
+      setItems([]);
+      setFeaturedResults([]);
+      sendQuery(API_ENDPOINT, query, filters).then((result) => {
+        setItems(result.ResultItems ?? []);
+        setFacets(result.FacetResults ?? []);
+        setFeaturedResults(result.FeaturedResultsItems ?? []);
+        setLoading(false);
+      });
+    }
+  }, [filters, query]);
+
   const onSubmit = async (data: Query) => {
     if (data.query.length === 0) return;
+    // 検索ワードを書き換えたら、絞り込み条件を初期化
+    if (query !== data.query) {
+      setFilters([]);
+      setFacets([]);
+    }
+    setQuery(data.query);
+  };
 
-    setQueryOnce(true);
-    setLoading(true);
-    setItems([]);
-    setFeaturedResults([]);
-    const result = await sendQuery(API_ENDPOINT, data.query);
-    setItems(result.ResultItems ?? []);
-    setFeaturedResults(result.FeaturedResultsItems ?? []);
-    setLoading(false);
+  const onChangeFilters = (newFileters: FilterType[]) => {
+    setFilters(newFileters);
   };
 
   return (
@@ -81,34 +105,50 @@ function ItemList() {
         items.length === 0 &&
         featuredResults.length === 0 && <TypeNotFound />}
 
-      {loading && (
-        <div>
-          <FontAwesomeIcon
-            className="text-xl text-gray-400 rotate mt-4"
-            icon={faSpinner}
-          />
+      <div className="grid grid-cols-10 w-full">
+        <div className="mx-5 col-span-2">
+          {queryOnce && facets.length > 0 && (
+            <FilterResult
+              filters={filters}
+              facetResults={facets}
+              onChange={onChangeFilters}
+            />
+          )}
         </div>
-      )}
 
-      {/* 通常の検索結果より先に、FeaturedResultsを表示する */}
-      {!loading &&
-        featuredResults.map((item) => {
-          return <TypeDocument item={item} isFeatured={true} key={item.Id} />;
-        })}
+        <div className="col-start-3 col-span-6">
+          {loading && (
+            <div className="flex justify-center">
+              <FontAwesomeIcon
+                className="text-xl text-gray-400 rotate mt-4"
+                icon={faSpinner}
+              />
+            </div>
+          )}
+          {/* 通常の検索結果より先に、FeaturedResultsを表示する */}
+          {!loading &&
+            featuredResults.map((item) => {
+              return (
+                <TypeDocument item={item} isFeatured={true} key={item.Id} />
+              );
+            })}
 
-      {!loading &&
-        items.map((item: QueryResultItem) => {
-          switch (item.Type) {
-            case 'DOCUMENT':
-              return <TypeDocument item={item} key={item.Id} />;
-            case 'ANSWER':
-              return <TypeAnswer item={item} key={item.Id} />;
-            case 'QUESTION_ANSWER':
-              return <TypeQuestionAnswer item={item} key={item.Id} />;
-            default:
-              return <>Unknown Type: {item.Type}</>;
-          }
-        })}
+          {!loading &&
+            items.length > 0 &&
+            items.map((item: QueryResultItem) => {
+              switch (item.Type) {
+                case 'DOCUMENT':
+                  return <TypeDocument item={item} key={item.Id} />;
+                case 'ANSWER':
+                  return <TypeAnswer item={item} key={item.Id} />;
+                case 'QUESTION_ANSWER':
+                  return <TypeQuestionAnswer item={item} key={item.Id} />;
+                default:
+                  return <>Unknown Type: {item.Type}</>;
+              }
+            })}
+        </div>
+      </div>
     </div>
   );
 }

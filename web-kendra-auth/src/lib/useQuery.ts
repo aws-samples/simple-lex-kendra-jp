@@ -1,3 +1,4 @@
+import { FilterType } from '../components/FilterResult';
 import { sendQuery } from './fetcher';
 import useLoginUser from './useLoginUser';
 
@@ -7,7 +8,7 @@ const useQuery = () => {
   const { token } = useLoginUser();
 
   return {
-    send: (query: string) => {
+    send: async (query: string, filters?: FilterType[]) => {
       // [Auth 拡張実装] JWT トークンが取得できていない場合は処理しない
       if (!token) {
         // デモのため、エラー処理は Alert を表示するだけの簡易的な実装
@@ -18,7 +19,7 @@ const useQuery = () => {
       }
 
       // [Auth 拡張実装] 認証用の JWT トークンの設定
-      return sendQuery(API_ENDPOINT, query, token);
+      return sendQuery(API_ENDPOINT, query, token, filters);
     },
   };
 };

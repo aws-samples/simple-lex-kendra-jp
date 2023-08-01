@@ -70,7 +70,7 @@ function TypeDocument(props: TypeDocumentProps) {
 
   return (
     <div
-      className={`p-4 w-2/3 mb-3 ${
+      className={`p-4 mb-3 ${
         props.isFeatured && 'ring-1 ring-gray-400 rounded'
       }`}
     >

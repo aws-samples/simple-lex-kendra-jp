@@ -52,6 +52,21 @@ export class SimpleKendraStack extends cdk.Stack {
       edition: 'DEVELOPER_EDITION',
       roleArn: indexRole.roleArn,
       userContextPolicy: 'ATTRIBUTE_FILTER',
+      // カスタム属性の実装例
+      //   以下をコメントアウトすることで、"Tags" というカスタム属性を有効化できます。
+      //   一度作成したカスタム属性は削除できないので、注意してください。
+      //   search のオプションを全て false にすることで無効化することは可能です。
+      // documentMetadataConfigurations: [
+      //   {
+      //     name: 'Tags',
+      //     type: 'STRING_LIST_VALUE',
+      //     search: {
+      //       facetable: true,
+      //       displayable: true,
+      //       searchable: true,
+      //     },
+      //   },
+      // ],
     });
 
     // -----
@@ -115,6 +130,9 @@ export class SimpleKendraStack extends cdk.Stack {
         S3Configuration: {
           BucketName: dataSourceBucket.bucketName,
           InclusionPrefixes: ['docs'],
+          DocumentsMetadataConfiguration: {
+            S3Prefix: 'metadata',
+          },
         },
       },
     });
@@ -215,7 +233,7 @@ export class SimpleKendraStack extends cdk.Stack {
     const kendraFaq = new Faq(this, 'KendraFaq', {
       IndexId: index.ref,
       LanguageCode: 'ja',
-      FileFormat: 'CSV',
+      FileFormat: 'CSV_WITH_HEADER',
       Name: 'Kendra-faq',
       RoleArn: faqRole.roleArn,
       S3Path: {
@@ -227,7 +245,7 @@ export class SimpleKendraStack extends cdk.Stack {
     const lexFaq = new Faq(this, 'LexFaq', {
       IndexId: index.ref,
       LanguageCode: 'ja',
-      FileFormat: 'CSV',
+      FileFormat: 'CSV_WITH_HEADER',
       Name: 'Lex-faq',
       RoleArn: faqRole.roleArn,
       S3Path: {
