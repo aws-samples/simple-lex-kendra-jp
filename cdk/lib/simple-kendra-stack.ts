@@ -13,8 +13,13 @@ import { GeoRestriction } from 'aws-cdk-lib/aws-cloudfront';
 import { NodejsBuild } from 'deploy-time-build';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
 import { DataSource, Faq, CommonWebAcl } from './constructs';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
+import {
+  DockerImageCode,
+  DockerImageFunction,
+  Runtime,
+} from 'aws-cdk-lib/aws-lambda';
 import { NagSuppressions } from 'cdk-nag';
+import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 
 export interface SimpleKendraStackProps extends cdk.StackProps {
   webAclCloudFront: waf.CfnWebACL;
@@ -287,6 +292,85 @@ export class SimpleKendraStack extends cdk.Stack {
       })
     );
 
+    const retrieveFunc = new lambda.NodejsFunction(this, 'RetrieveFunc', {
+      runtime: Runtime.NODEJS_18_X,
+      entry: './lambda/retrieve.ts',
+      timeout: cdk.Duration.minutes(3),
+      environment: {
+        INDEX_ID: index.ref,
+      },
+      bundling: {
+        // Featured Results に対応している aws-sdk を利用するため、aws-sdk をバンドルする形でビルドする
+        // デフォルトだと aws-sdk が ExternalModules として指定されバンドルされず、Lambda デフォルトバージョンの aws-sdk が利用されるようになる
+        // https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/lambda-runtimes.html
+        externalModules: [],
+      },
+    });
+
+    // Lambda から Kendra を呼び出せるように権限を付与
+    retrieveFunc.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: [cdk.Token.asString(index.getAtt('Arn'))],
+        actions: ['kendra:Retrieve'],
+      })
+    );
+
+    // FIXME: 現状 Bedrock SDK が Python しか存在しないため、推論だけ別構成とする
+    const assumeRolePolicy = new iam.PolicyStatement({
+      actions: ['sts:AssumeRole'],
+      resources: ['arn:aws:iam::936931980683:role/BedrockRole4RP'],
+    });
+    const bedrockRole = new iam.Role(this, 'BedrockRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    });
+    bedrockRole.addToPolicy(assumeRolePolicy);
+
+    const predictFunc = new DockerImageFunction(this, 'PredictFunc', {
+      code: DockerImageCode.fromImageAsset('./predictor', {
+        platform: Platform.LINUX_AMD64,
+      }),
+      timeout: cdk.Duration.minutes(1),
+      role: bedrockRole,
+    });
+    predictFunc.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: ['*'],
+        actions: ['bedrock:*', 'logs:*'],
+      })
+    );
+    predictFunc.role?.grantAssumeRole(
+      new iam.ServicePrincipal('bedrock.amazonaws.com')
+    );
+    // ----------------------------------------
+
+    // ---実験用
+    // const predictFunc = new lambda.NodejsFunction(this, 'predictFunc', {
+    //   runtime: Runtime.NODEJS_18_X,
+    //   entry: './lambda/predict.ts',
+    //   timeout: cdk.Duration.minutes(3),
+    //   environment: {
+    //     INDEX_ID: index.ref,
+    //   },
+    //   bundling: {
+    //     // Featured Results に対応している aws-sdk を利用するため、aws-sdk をバンドルする形でビルドする
+    //     // デフォルトだと aws-sdk が ExternalModules として指定されバンドルされず、Lambda デフォルトバージョンの aws-sdk が利用されるようになる
+    //     // https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/lambda-runtimes.html
+    //     externalModules: [],
+    //   },
+    // });
+
+    // // Lambda から Kendra を呼び出せるように権限を付与
+    // predictFunc.role?.addToPrincipalPolicy(
+    //   new iam.PolicyStatement({
+    //     effect: iam.Effect.ALLOW,
+    //     resources: [cdk.Token.asString(index.getAtt('Arn'))],
+    //     actions: ['kendra:Retrieve'],
+    //   })
+    // );
+    // ---実験用終わり
+
     const syncCustomDataSourceFunc = new lambda.NodejsFunction(
       this,
       'SyncCustomDataSourceFunc',
@@ -366,6 +450,12 @@ export class SimpleKendraStack extends cdk.Stack {
 
     const kendraEndpoint = kendraApi.root.addResource('kendra');
     kendraEndpoint.addMethod('POST', new agw.LambdaIntegration(queryFunc));
+
+    const ragEndpoint = kendraEndpoint.addResource('rag');
+    ragEndpoint.addMethod('POST', new agw.LambdaIntegration(retrieveFunc));
+
+    const predictEndpoint = kendraEndpoint.addResource('predict');
+    predictEndpoint.addMethod('POST', new agw.LambdaIntegration(predictFunc));
 
     const apiWebAcl = new CommonWebAcl(this, 'KendraApiWebAcl', {
       scope: 'REGIONAL',
