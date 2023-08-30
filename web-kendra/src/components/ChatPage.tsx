@@ -4,22 +4,16 @@ import InputChat from './InputChat';
 import useRag from '../hooks/useRag';
 
 const ChatPage: React.FC = () => {
-  const { retrieve, predictFromRetrivedItems, predict, messages } = useRag();
+  const { predict, messages } = useRag();
   const [content, setContent] = useState('');
 
   const onSend = useCallback(
     (content: string) => {
       setContent('');
 
-      if (messages.length === 0) {
-        retrieve(content).then((res) => {
-          predictFromRetrivedItems(content, res.ResultItems);
-        });
-      } else {
-        predict(content);
-      }
+      predict(content);
     },
-    [messages.length, retrieve, predictFromRetrivedItems, predict]
+    [predict]
   );
 
   return (
