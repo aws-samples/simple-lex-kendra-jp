@@ -451,7 +451,7 @@ export class SimpleKendraStack extends cdk.Stack {
     const kendraEndpoint = kendraApi.root.addResource('kendra');
     kendraEndpoint.addMethod('POST', new agw.LambdaIntegration(queryFunc));
 
-    const ragEndpoint = kendraEndpoint.addResource('rag');
+    const ragEndpoint = kendraEndpoint.addResource('retrieve');
     ragEndpoint.addMethod('POST', new agw.LambdaIntegration(retrieveFunc));
 
     const predictEndpoint = kendraEndpoint.addResource('predict');

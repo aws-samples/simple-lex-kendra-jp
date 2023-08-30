@@ -69,7 +69,8 @@ def handler(event, context):
   return {
         'isBase64Encoded': False,
         'statusCode': 200,
-        'body': json.dumps(output_txt, ensure_ascii=False),
+        # 'body': json.dumps(output_txt, ensure_ascii=False),
+        'body': output_txt,
         'headers': {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*'
