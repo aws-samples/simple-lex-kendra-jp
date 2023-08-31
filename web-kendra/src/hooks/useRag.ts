@@ -1,40 +1,57 @@
-import { useEffect, useMemo, useState } from 'react';
-import { predict, sendQuery } from '../lib/fetcher';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { sendQuery } from '../lib/fetcher';
 import { RetrieveResult, RetrieveResultItem } from '@aws-sdk/client-kendra';
 import { Message } from '../types/Chat';
 import { produce } from 'immer';
+import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers';
+import {
+  InvokeWithResponseStreamCommand,
+  LambdaClient,
+} from '@aws-sdk/client-lambda';
 
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT!;
+
+const predictStream = async function* (prompt: string) {
+  const region = process.env.REACT_APP_REGION!;
+  const idPoolId = process.env.REACT_APP_IDENTITY_POOL_ID!;
+  const lambda = new LambdaClient({
+    region,
+    credentials: fromCognitoIdentityPool({
+      identityPoolId: idPoolId,
+      clientConfig: { region: region },
+    }),
+  });
+
+  const res = await lambda.send(
+    new InvokeWithResponseStreamCommand({
+      FunctionName: process.env.REACT_APP_PREDICT_STREAM_FUNCTION_ARN,
+      Payload: JSON.stringify({
+        prompt: prompt,
+      }),
+    })
+  );
+  const events = res.EventStream!;
+
+  for await (const event of events) {
+    console.log(event);
+    if (event.PayloadChunk) {
+      yield new TextDecoder('utf-8').decode(event.PayloadChunk.Payload);
+    }
+
+    if (event.InvokeComplete) {
+      break;
+    }
+  }
+};
 
 const useRag = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [retrievedItems, setRetrievedItems] = useState<RetrieveResultItem[]>(
     []
   );
-  const [referencedItems, setReferencedItems] = useState<
-    {
-      DocumentId: string;
-    }[]
-  >([]);
+  const [referencedItems, setReferencedItems] = useState<string[]>([]);
 
   const embededItems = useMemo<RetrieveResultItem[]>(() => {
-    console.log(
-      referencedItems.map((item) => item.DocumentId),
-      retrievedItems.map((item) => item.DocumentURI),
-      retrievedItems
-        .filter(
-          (item) =>
-            referencedItems.findIndex(
-              (refItem) => refItem.DocumentId === item.DocumentId
-            ) > -1
-        )
-        .map((item) => ({
-          DocumentId: item.DocumentId,
-          DocumentTitle: item.DocumentTitle,
-          DocumentURI: item.DocumentURI,
-          Content: item.Content,
-        }))
-    );
     if (referencedItems.length === 0) {
       return retrievedItems;
     } else {
@@ -42,7 +59,7 @@ const useRag = () => {
         .filter(
           (item) =>
             referencedItems.findIndex(
-              (refItem) => refItem.DocumentId === item.DocumentId
+              (refItem) => refItem === item.DocumentId
             ) > -1
         )
         .map((item) => ({
@@ -53,6 +70,10 @@ const useRag = () => {
         }));
     }
   }, [referencedItems, retrievedItems]);
+
+  useEffect(() => {
+    console.log(embededItems);
+  }, [embededItems]);
 
   const prompt = useMemo(() => {
     return `Human: あなたはユーザの質問に答えるAIアシスタントです。
@@ -76,17 +97,16 @@ const useRag = () => {
 
 # 回答のルール
 * 必ず「参考ドキュメント」をもとに回答してください。「参考ドキュメント」から読み取れないことは、絶対に回答しないでください。
-* 回答の中に「Human:」「Assistant:」「<< Documents >>」「<< Answer >>」は絶対に含めないでください。例外はありません。
-* 回答は以下のフォーマットで行なってください。フォーマットは絶対に変えないでください。
-* 「# 回答のJSON形式」の「<< Documents >>」はJSON形式で出力してください。複数件データがある場合は配列で全て設定すること。
+* 「参考ドキュメント」をもとに回答できない場合は、「解答に必要な情報が見つかりませんでした。」とだけ出力してください。例外はありません。
+* 回答した後に、回答の参考にした「参考ドキュメント」の情報を出力してください。回答の後に「<< Documents >>」と出力して、その後に続けて「参考ドキュメント」の情報を出力してください。
+* 回答の参考にした「参考ドキュメント」は、「# 回答の元になった参考ドキュメントのJSON形式」のフォーマットで必ずJSON形式で出力してください。複数参考にした場合は、配列で設定してください。
+* 回答の中に「Human:」「Assistant:」「<< Documents >>」は絶対に含めないでください。例外はありません。
 
-# 回答のJSON形式
-<< Documents >>
+# 回答の元になった参考ドキュメントのJSON形式
 {
     "DocumentId": "回答の参考にした「参考ドキュメント」のDocumentIdを記載してください。"
 }[]
-<< Answer >>
-ここに回答を記載してください。<< Documents >>が0件の場合は、何も出力しないでください。
+
 
 Assistant: I understand
 Human: Reference documents
@@ -110,6 +130,73 @@ Assistant:
 `;
   }, [embededItems, messages]);
 
+  const postMessage = useCallback(async () => {
+    setMessages(
+      produce(messages, (draft) => {
+        draft.push({
+          role: 'assistant',
+          content: '',
+        });
+      })
+    );
+
+    const stream = predictStream(prompt);
+    let tmp = '';
+    let isAnswer = true;
+    for await (const chunk of stream) {
+      console.log(chunk);
+      tmp += chunk;
+
+      if (tmp.includes('<< Documents >>')) {
+        isAnswer = false;
+        // const [docs, answer] = tmp
+        //   .split("<< Documents >>")
+        //   .filter((s) => s.trim() !== '');
+
+        // tmp = answer ?? '';
+
+        // setReferencedItems(
+        //   produce(referencedItems, (draft) => {
+        //     draft.push(
+        //       ...(
+        //         JSON.parse(docs) as {
+        //           DocumentId: string;
+        //         }[]
+        //       ).map((v) => v.DocumentId)
+        //     );
+        //   })
+        // );
+
+        // setMessages(
+        //   produce(messages, (draft) => {
+        //     draft.push({
+        //       role: 'assistant',
+        //       content: '',
+        //       references: [
+        //         {
+        //           title: 'テストドキュメント',
+        //           uri: 'xxx',
+        //         },
+        //       ],
+        //     });
+        //   })
+        // );
+      }
+
+      if (isAnswer) {
+        setMessages(
+          // eslint-disable-next-line no-loop-func
+          produce(messages, (draft) => {
+            draft.push({
+              role: 'assistant',
+              content: tmp,
+            });
+          })
+        );
+      }
+    }
+  }, [messages, prompt]);
+
   useEffect(() => {
     if (messages.length === 0) {
       return;
@@ -117,26 +204,7 @@ Assistant:
     const lastMessage = messages[messages.length - 1];
 
     if (lastMessage.role === 'user') {
-      predict(API_ENDPOINT + '/predict', prompt).then((res) => {
-        const [refDocs, answer] = res
-          .split(/<< Documents >>|<< Answer >>/)
-          .filter((s) => s !== '');
-
-        setReferencedItems(
-          produce(referencedItems, (draft) => {
-            draft.push(...JSON.parse(refDocs));
-          })
-        );
-
-        setMessages(
-          produce(messages, (draft) => {
-            draft.push({
-              role: 'assistant',
-              content: answer,
-            });
-          })
-        );
-      });
+      postMessage();
     }
   }, [messages, prompt, referencedItems]);
 

@@ -16,6 +16,10 @@ type Props = {
   className?: string;
   role: Role;
   content: string;
+  references?: {
+    title: string;
+    uri: string;
+  }[];
 };
 
 const CardChat: React.FC<Props> = (props) => {
@@ -41,30 +45,44 @@ const CardChat: React.FC<Props> = (props) => {
       </div>
       <div>
         {props.content.replaceAll('\n', '') !== '' ? (
-          <ReactMarkdown
-            className="prose max-w-full break-all"
-            children={props.content}
-            remarkPlugins={[remarkGfm, remarkBreaks]}
-            components={{
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              code({ node, inline, className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || '');
-                return !inline && match ? (
-                  <SyntaxHighlighter
-                    {...props}
-                    children={String(children).replace(/\n$/, '')}
-                    style={vscDarkPlus}
-                    language={match[1]}
-                    PreTag="div"
-                  />
-                ) : (
-                  <code {...props} className={className}>
-                    {children}
-                  </code>
-                );
-              },
-            }}
-          />
+          <>
+            <ReactMarkdown
+              className="prose max-w-full break-all"
+              children={props.content}
+              remarkPlugins={[remarkGfm, remarkBreaks]}
+              components={{
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                code({ node, inline, className, children, ...props }) {
+                  const match = /language-(\w+)/.exec(className || '');
+                  return !inline && match ? (
+                    <SyntaxHighlighter
+                      {...props}
+                      children={String(children).replace(/\n$/, '')}
+                      style={vscDarkPlus}
+                      language={match[1]}
+                      PreTag="div"
+                    />
+                  ) : (
+                    <code {...props} className={className}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+            />
+            {props.references && (
+              <div className="mt-2">
+                <div className="font-semibold italic text-sm text-gray-500">
+                  参考ドキュメント
+                </div>
+                <div className="ml-3">
+                  {props.references.map((reference) => (
+                    <div className="text-xs">{reference.title}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <div className="mt-1 ml-1">
             <FontAwesomeIcon

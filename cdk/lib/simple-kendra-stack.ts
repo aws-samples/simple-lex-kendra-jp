@@ -61,17 +61,17 @@ export class SimpleKendraStack extends cdk.Stack {
       //   以下をコメントアウトすることで、"Tags" というカスタム属性を有効化できます。
       //   一度作成したカスタム属性は削除できないので、注意してください。
       //   search のオプションを全て false にすることで無効化することは可能です。
-      // documentMetadataConfigurations: [
-      //   {
-      //     name: 'Tags',
-      //     type: 'STRING_LIST_VALUE',
-      //     search: {
-      //       facetable: true,
-      //       displayable: true,
-      //       searchable: true,
-      //     },
-      //   },
-      // ],
+      documentMetadataConfigurations: [
+        {
+          name: 'Tags',
+          type: 'STRING_LIST_VALUE',
+          search: {
+            facetable: true,
+            displayable: true,
+            searchable: true,
+          },
+        },
+      ],
     });
 
     // -----
@@ -190,6 +190,27 @@ export class SimpleKendraStack extends cdk.Stack {
     // 明示的に依存関係を追加 (逐次作成されるように)
     customDataSource.node.addDependency(s3DataSource);
     webCrawlerDataSource.node.addDependency(customDataSource);
+
+    // -----
+    // Identity Pool の作成
+    // -----
+
+    const identityPool = new idPool.IdentityPool(
+      this,
+      'IdentityPoolForKendra',
+      {
+        allowUnauthenticatedIdentities: true,
+      }
+    );
+
+    // Unauthorized User に以下の権限 (S3) を付与
+    identityPool.unauthenticatedRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['s3:GetObject'],
+        resources: [dataSourceBucket.arnForObjects('*')],
+      })
+    );
 
     // ---
     // FAQ の作成
@@ -316,7 +337,7 @@ export class SimpleKendraStack extends cdk.Stack {
       })
     );
 
-    // FIXME: 現状 Bedrock SDK が Python しか存在しないため、推論だけ別構成とする
+    // FIXME: 仮実装
     const assumeRolePolicy = new iam.PolicyStatement({
       actions: ['sts:AssumeRole'],
       resources: ['arn:aws:iam::936931980683:role/BedrockRole4RP'],
@@ -325,12 +346,36 @@ export class SimpleKendraStack extends cdk.Stack {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
     bedrockRole.addToPolicy(assumeRolePolicy);
+    // ----
 
+    const predictStreamFunction = new lambda.NodejsFunction(
+      this,
+      'PredictStream',
+      {
+        runtime: Runtime.NODEJS_18_X,
+        entry: './lambda/predict-stream.ts',
+        timeout: cdk.Duration.minutes(3),
+        role: bedrockRole,
+      }
+    );
+    predictStreamFunction.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: ['*'],
+        actions: ['bedrock:*', 'logs:*'],
+      })
+    );
+    predictStreamFunction.role?.grantAssumeRole(
+      new iam.ServicePrincipal('bedrock.amazonaws.com')
+    );
+    predictStreamFunction.grantInvoke(identityPool.unauthenticatedRole);
+
+    // FIXME: 現状 Bedrock SDK が Python しか存在しないため、推論だけ別構成とする
     const predictFunc = new DockerImageFunction(this, 'PredictFunc', {
       code: DockerImageCode.fromImageAsset('./predictor', {
         platform: Platform.LINUX_AMD64,
       }),
-      timeout: cdk.Duration.minutes(1),
+      timeout: cdk.Duration.minutes(5),
       role: bedrockRole,
     });
     predictFunc.role?.addToPrincipalPolicy(
@@ -471,27 +516,6 @@ export class SimpleKendraStack extends cdk.Stack {
     });
 
     // -----
-    // Identity Pool の作成
-    // -----
-
-    const identityPool = new idPool.IdentityPool(
-      this,
-      'IdentityPoolForKendra',
-      {
-        allowUnauthenticatedIdentities: true,
-      }
-    );
-
-    // Unauthorized User に以下の権限 (S3) を付与
-    identityPool.unauthenticatedRole.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['s3:GetObject'],
-        resources: [dataSourceBucket.arnForObjects('*')],
-      })
-    );
-
-    // -----
     // Frontend のデプロイ
     // -----
 
@@ -575,6 +599,10 @@ export class SimpleKendraStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'KendraSampleFrontend', {
       value: `https://${cloudFrontWebDistribution.distributionDomainName}`,
+    });
+
+    new cdk.CfnOutput(this, 'PredictStreamFunctionArn', {
+      value: predictStreamFunction.functionArn,
     });
 
     this.index = index;

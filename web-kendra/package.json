@@ -2,7 +2,9 @@
   "name": "web-kendra",
   "private": true,
   "dependencies": {
+    "@aws-sdk/client-cognito-identity": "^3.370.0",
     "@aws-sdk/client-kendra": "^3.370.0",
+    "@aws-sdk/client-lambda": "^3.398.0",
     "@aws-sdk/client-s3": "^3.373.0",
     "@aws-sdk/credential-providers": "^3.370.0",
     "@aws-sdk/s3-request-presigner": "^3.373.0",
