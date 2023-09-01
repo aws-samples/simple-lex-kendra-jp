@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { sendQuery } from '../lib/fetcher';
+import { predict, sendQuery } from '../lib/fetcher';
 import { RetrieveResult, RetrieveResultItem } from '@aws-sdk/client-kendra';
 import { Message } from '../types/Chat';
 import { produce } from 'immer';
@@ -8,6 +8,7 @@ import {
   InvokeWithResponseStreamCommand,
   LambdaClient,
 } from '@aws-sdk/client-lambda';
+import { basicPrompt, referencedDocumentsPrompt } from '../lib/ragPrompts';
 
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT!;
 
@@ -26,14 +27,13 @@ const predictStream = async function* (prompt: string) {
     new InvokeWithResponseStreamCommand({
       FunctionName: process.env.REACT_APP_PREDICT_STREAM_FUNCTION_ARN,
       Payload: JSON.stringify({
-        prompt: prompt,
+        prompt: prompt + 'Assistant: ',
       }),
     })
   );
   const events = res.EventStream!;
 
   for await (const event of events) {
-    console.log(event);
     if (event.PayloadChunk) {
       yield new TextDecoder('utf-8').decode(event.PayloadChunk.Payload);
     }
@@ -45,7 +45,10 @@ const predictStream = async function* (prompt: string) {
 };
 
 const useRag = () => {
+  const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [queueGetReference, setQueueGetReference] = useState<number[]>([]);
+
   const [retrievedItems, setRetrievedItems] = useState<RetrieveResultItem[]>(
     []
   );
@@ -75,61 +78,6 @@ const useRag = () => {
     console.log(embededItems);
   }, [embededItems]);
 
-  const prompt = useMemo(() => {
-    return `Human: あなたはユーザの質問に答えるAIアシスタントです。
-以下の手順でユーザの質問に答えてください。手順以外のことは絶対にしないでください。
-理解したら「I understand」とだけ返信してください。
-
-# 回答手順
-* 私が「Reference documents」というコメントをします。このコメントの後に、「参考ドキュメント」を連続して送信していきます。
-* あなたは「Reference documents」というコメントを受信したら、「Start」と返信してください。
-* 続いてJSON形式で「参考ドキュメント」を連続で投稿していきます。フォーマットは「# 参考ドキュメントのJSON形式」に示します。あなたはドキュメントを受信したら「Please continue」とだけ返信してください。
-* 私が全ての「参考ドキュメント」をすべて投稿したら「DONE」というコメントを送ります。あなたはこのコメントを受信したら「<< COMPLETED >>」と返信してください。
-* あなたの「OK」というコメントの後に、私が質問を投稿します。あなたは「# 回答のルール」に沿って質問にJSON形式で回答してください。ルールは絶対です。例外はありません。
-
-# 参考ドキュメントのJSON形式
-{
-  "DocumentId": "ドキュメントを一意に特定するIDです。",
-  "DocumentTitle": "ドキュメントのタイトルです。",
-  "DocumentURI": "ドキュメントが格納されているURIです。",
-  "Content": "ドキュメントの内容です。こちらをもとに回答してください。",
-}
-
-# 回答のルール
-* 必ず「参考ドキュメント」をもとに回答してください。「参考ドキュメント」から読み取れないことは、絶対に回答しないでください。
-* 「参考ドキュメント」をもとに回答できない場合は、「解答に必要な情報が見つかりませんでした。」とだけ出力してください。例外はありません。
-* 回答した後に、回答の参考にした「参考ドキュメント」の情報を出力してください。回答の後に「<< Documents >>」と出力して、その後に続けて「参考ドキュメント」の情報を出力してください。
-* 回答の参考にした「参考ドキュメント」は、「# 回答の元になった参考ドキュメントのJSON形式」のフォーマットで必ずJSON形式で出力してください。複数参考にした場合は、配列で設定してください。
-* 回答の中に「Human:」「Assistant:」「<< Documents >>」は絶対に含めないでください。例外はありません。
-
-# 回答の元になった参考ドキュメントのJSON形式
-{
-    "DocumentId": "回答の参考にした「参考ドキュメント」のDocumentIdを記載してください。"
-}[]
-
-
-Assistant: I understand
-Human: Reference documents
-Assistant: Start
-${embededItems
-  .map((item) => {
-    return `Human: ${JSON.stringify(item)}
-Assistant: Please continue`;
-  })
-  .join('\n')}
-Human: DONE
-Assistant: << COMPLETED >>
-${messages
-  .map((message) => {
-    return `${message.role === 'user' ? 'Human:' : 'Assistant: '} ${
-      message.content
-    }`;
-  })
-  .join('\n')}
-Assistant: 
-`;
-  }, [embededItems, messages]);
-
   const postMessage = useCallback(async () => {
     setMessages(
       produce(messages, (draft) => {
@@ -140,62 +88,72 @@ Assistant:
       })
     );
 
-    const stream = predictStream(prompt);
+    setLoading(true);
+    const stream = predictStream(basicPrompt(embededItems, messages));
     let tmp = '';
-    let isAnswer = true;
     for await (const chunk of stream) {
-      console.log(chunk);
       tmp += chunk;
-
-      if (tmp.includes('<< Documents >>')) {
-        isAnswer = false;
-        // const [docs, answer] = tmp
-        //   .split("<< Documents >>")
-        //   .filter((s) => s.trim() !== '');
-
-        // tmp = answer ?? '';
-
-        // setReferencedItems(
-        //   produce(referencedItems, (draft) => {
-        //     draft.push(
-        //       ...(
-        //         JSON.parse(docs) as {
-        //           DocumentId: string;
-        //         }[]
-        //       ).map((v) => v.DocumentId)
-        //     );
-        //   })
-        // );
-
-        // setMessages(
-        //   produce(messages, (draft) => {
-        //     draft.push({
-        //       role: 'assistant',
-        //       content: '',
-        //       references: [
-        //         {
-        //           title: 'テストドキュメント',
-        //           uri: 'xxx',
-        //         },
-        //       ],
-        //     });
-        //   })
-        // );
-      }
-
-      if (isAnswer) {
-        setMessages(
-          // eslint-disable-next-line no-loop-func
-          produce(messages, (draft) => {
-            draft.push({
-              role: 'assistant',
-              content: tmp,
-            });
-          })
-        );
-      }
+      setLoading(false);
+      setMessages(
+        // eslint-disable-next-line no-loop-func
+        produce(messages, (draft) => {
+          draft.push({
+            role: 'assistant',
+            content: tmp,
+          });
+        })
+      );
     }
-  }, [messages, prompt]);
+    setQueueGetReference([...queueGetReference, messages.length]);
+  }, [embededItems, messages, queueGetReference]);
+
+  useEffect(() => {
+    if (
+      queueGetReference.length > 0 &&
+      messages[queueGetReference[0]].content !== ''
+    ) {
+      (async () => {
+        const res = await predict(
+          API_ENDPOINT + '/predict',
+          referencedDocumentsPrompt(embededItems, [
+            ...messages.slice(0, queueGetReference[0] + 1),
+          ])
+        );
+        console.log(JSON.parse(res).completion);
+
+        try {
+          const refDocs: {
+            DocumentId: string;
+            DocumentTitle: string;
+            DocumentURI: string;
+          }[] = JSON.parse(
+            (JSON.parse(res).completion as string).replace('Assistant: ', '')
+          );
+
+          setMessages(
+            // eslint-disable-next-line no-loop-func
+            produce(messages, (draft) => {
+              draft[queueGetReference[0]].references = refDocs.map((d) => ({
+                title: d.DocumentTitle,
+                uri: d.DocumentURI,
+              }));
+            })
+          );
+
+          setReferencedItems(
+            produce(referencedItems, (draft) => {
+              draft.push(...refDocs.map((v) => v.DocumentId));
+            })
+          );
+        } catch {
+          console.error('参照ドキュメントの取得に失敗しました。');
+        }
+
+        setQueueGetReference(queueGetReference.splice(1));
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queueGetReference, messages]);
 
   useEffect(() => {
     if (messages.length === 0) {
@@ -206,7 +164,7 @@ Assistant:
     if (lastMessage.role === 'user') {
       postMessage();
     }
-  }, [messages, prompt, referencedItems]);
+  }, [messages, postMessage]);
 
   return {
     messages,

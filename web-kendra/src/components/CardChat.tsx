@@ -76,8 +76,10 @@ const CardChat: React.FC<Props> = (props) => {
                   参考ドキュメント
                 </div>
                 <div className="ml-3">
-                  {props.references.map((reference) => (
-                    <div className="text-xs">{reference.title}</div>
+                  {props.references.map((reference, idx) => (
+                    <div key={idx} className="text-xs">
+                      {reference.title}({reference.uri})
+                    </div>
                   ))}
                 </div>
               </div>

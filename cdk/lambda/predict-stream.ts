@@ -35,10 +35,10 @@ export const handler = awslambda.streamifyResponse(
     const res = await api.post(
       'https://bedrock.us-east-1.amazonaws.com/model/anthropic.claude-v2/invoke-with-response-stream',
       {
-        max_tokens_to_sample: 2000,
-        temperature: 0.0,
-        top_k: 250,
-        top_p: 0.999,
+        max_tokens_to_sample: 3000,
+        temperature: 0.7,
+        top_k: 100,
+        top_p: 0.9,
         stop_sequences: [],
         prompt: event.prompt,
       },
@@ -67,12 +67,12 @@ export const handler = awslambda.streamifyResponse(
           'base64'
         ).toString()
       );
-      console.log(body);
-      if (body.stop_reason) {
-        break;
-      }
+      // console.log(body);
       if (body.completion) {
         responseStream.write(body.completion);
+      }
+      if (body.stop_reason) {
+        break;
       }
     }
 

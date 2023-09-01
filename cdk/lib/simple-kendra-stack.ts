@@ -370,14 +370,22 @@ export class SimpleKendraStack extends cdk.Stack {
     );
     predictStreamFunction.grantInvoke(identityPool.unauthenticatedRole);
 
-    // FIXME: 現状 Bedrock SDK が Python しか存在しないため、推論だけ別構成とする
-    const predictFunc = new DockerImageFunction(this, 'PredictFunc', {
-      code: DockerImageCode.fromImageAsset('./predictor', {
-        platform: Platform.LINUX_AMD64,
-      }),
-      timeout: cdk.Duration.minutes(5),
+    // // FIXME: 現状 Bedrock SDK が Python しか存在しないため、推論だけ別構成とする
+    // const predictFunc = new DockerImageFunction(this, 'PredictFunc', {
+    //   code: DockerImageCode.fromImageAsset('./predictor', {
+    //     platform: Platform.LINUX_AMD64,
+    //   }),
+    //   timeout: cdk.Duration.minutes(5),
+    //   role: bedrockRole,
+    // });
+
+    const predictFunc = new lambda.NodejsFunction(this, 'PredictFunc', {
+      runtime: Runtime.NODEJS_18_X,
+      entry: './lambda/predict.ts',
+      timeout: cdk.Duration.minutes(3),
       role: bedrockRole,
     });
+
     predictFunc.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
