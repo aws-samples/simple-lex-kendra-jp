@@ -1,4 +1,4 @@
-import { sendQuery } from '../lib/fetcher';
+import { predict, sendQuery } from '../lib/fetcher';
 import { RetrieveResult, RetrieveResultItem } from '@aws-sdk/client-kendra';
 import { Message } from '../types/Chat';
 import { produce } from 'immer';
@@ -7,7 +7,11 @@ import {
   InvokeWithResponseStreamCommand,
   LambdaClient,
 } from '@aws-sdk/client-lambda';
-import { basicPrompt, referencedDocumentsPrompt } from '../lib/ragPrompts';
+import {
+  basicPrompt,
+  referencedDocumentsPrompt,
+  retrieveQueryPrompt,
+} from '../lib/ragPrompts';
 import { create } from 'zustand';
 
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT!;
@@ -48,11 +52,24 @@ const useRagState = create<{
   loading: boolean;
   messages: Message[];
   pushNewPredictContent: (content: string) => void;
-  predict: (retrievedItems: RetrieveResultItem[]) => Promise<void>;
+  getRetrieveQuery: () => Promise<string>;
+  predictAnswer: (retrievedItems: RetrieveResultItem[]) => Promise<void>;
   setReference: (retrievedItems: RetrieveResultItem[]) => Promise<void>;
 }>((set, get) => {
+  // RetrieveするためのQueryを生成
+  const getRetrieveQuery = async () => {
+    const contents = get()
+      .messages.filter((m) => m.role === 'user')
+      .map((m) => m.content);
+    const query = await predict(retrieveQueryPrompt(contents));
+    if (query === 'No Query') {
+      return contents.slice(-1)[0];
+    }
+    return query;
+  };
+
   // メッセージの送信
-  const predict = async (retrievedItems: RetrieveResultItem[]) => {
+  const predictAnswer = async (retrievedItems: RetrieveResultItem[]) => {
     try {
       const stream = predictStream(basicPrompt(retrievedItems, get().messages));
       for await (const chunk of stream) {
@@ -78,8 +95,16 @@ const useRagState = create<{
     }
   };
 
+  // 参考ドキュメント
   const setReference = async (retrievedItems: RetrieveResultItem[]) => {
     const targetIndex = get().messages.length - 1;
+
+    // 「雑談はできません。」という文言が含まれている場合は、参照ドキュメントの検索は行わない
+    // Promptで雑談が入力された場合に、「雑談はできません。」を出力するように指示している
+    if (/雑談はできません。/.test(get().messages[targetIndex].content)) {
+      return;
+    }
+
     try {
       set((state) => ({
         messages: produce(state.messages, (draft) => {
@@ -144,14 +169,21 @@ const useRagState = create<{
         }),
       }));
     },
-    predict,
+    getRetrieveQuery,
+    predictAnswer,
     setReference,
   };
 });
 
 const useRag = () => {
-  const { loading, messages, predict, setReference, pushNewPredictContent } =
-    useRagState();
+  const {
+    loading,
+    messages,
+    predictAnswer,
+    getRetrieveQuery,
+    setReference,
+    pushNewPredictContent,
+  } = useRagState();
 
   return {
     loading,
@@ -159,12 +191,14 @@ const useRag = () => {
     postMessage: async (content: string) => {
       pushNewPredictContent(content);
 
+      const query = await getRetrieveQuery();
+
       const result = await sendQuery<RetrieveResult>(
         API_ENDPOINT + '/retrieve',
-        content
+        query
       );
       const retrievedItems = result.ResultItems ?? [];
-      await predict(retrievedItems);
+      await predictAnswer(retrievedItems);
       await setReference(retrievedItems);
     },
   };

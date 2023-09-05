@@ -12,6 +12,7 @@ import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import ChatReferenceDoc from './ChatReferenceDoc';
 
 type Props = {
   className?: string;
@@ -84,13 +85,18 @@ const CardChat: React.FC<Props> = (props) => {
                   )}
                   {message.references &&
                     message.references.map((reference, idx) => (
-                      <div key={idx} className="text-xs mb-1">
-                        <div className="font-semibold">{reference.title}</div>
+                      <ChatReferenceDoc
+                        key={idx}
+                        className="mb-1"
+                        {...reference}
+                      />
+                      // <div key={idx} className="text-xs mb-1">
+                      //   <div className="font-semibold">{reference.title}</div>
 
-                        <div className="ml-3 text-blue-500 ">
-                          {reference.uri}
-                        </div>
-                      </div>
+                      //   <div className="ml-3 text-blue-500 ">
+                      //     {reference.uri}
+                      //   </div>
+                      // </div>
                     ))}
                   {message.references?.length === 0 && (
                     <div className="text-sm font-bold">

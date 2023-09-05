@@ -1,6 +1,8 @@
 import { QueryResult } from '@aws-sdk/client-kendra';
 import { FilterType } from '../components/FilterResult';
 
+const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT!;
+
 export const sendQuery = async <T = QueryResult>(
   api: string,
   query: string,
@@ -26,8 +28,8 @@ export const sendQuery = async <T = QueryResult>(
   return result;
 };
 
-export const predict = async (api: string, prompt: string) => {
-  const res = await fetch(api, {
+export const predict = async (prompt: string): Promise<string> => {
+  const res = await fetch(API_ENDPOINT + '/predict', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -41,7 +43,7 @@ export const predict = async (api: string, prompt: string) => {
     throw new Error(`API Error (${res.status})`);
   }
 
-  const result = await res.text();
+  const result = await res.json();
 
-  return result;
+  return result.completion;
 };
