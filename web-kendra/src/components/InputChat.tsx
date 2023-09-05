@@ -57,7 +57,7 @@ const InputChat: React.FC<Props> = (props) => {
   }, [props.value]);
 
   return (
-    <div className="mb-2 flex p-2 items-end rounded-xl border bg-white border-gray-400 shadow-[0_0_10px_3px] shadow-gray-400/40 md:w-10/12 lg:w-4/6 xl:w-3/6">
+    <div className="mb-2 flex p-2 items-end rounded-xl border bg-white border-gray-400 shadow-[0_0_10px_3px] shadow-gray-400/40 sm:w-11/12 md:w-10/12 lg:w-4/6 xl:w-3/6">
       <textarea
         ref={ref}
         className={`w-full resize-none rounded p-1.5 outline-none bg-transparent ${
