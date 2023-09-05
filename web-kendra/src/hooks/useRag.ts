@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { predict, sendQuery } from '../lib/fetcher';
 import { RetrieveResult, RetrieveResultItem } from '@aws-sdk/client-kendra';
 import { Message } from '../types/Chat';
@@ -46,38 +46,15 @@ const predictStream = async function* (prompt: string) {
 
 const useRag = () => {
   const [loading, setLoading] = useState(false);
+  const [loadingReference, setLoadingReference] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [queueGetReference, setQueueGetReference] = useState<number[]>([]);
 
   const [retrievedItems, setRetrievedItems] = useState<RetrieveResultItem[]>(
     []
   );
-  const [referencedItems, setReferencedItems] = useState<string[]>([]);
 
-  const embededItems = useMemo<RetrieveResultItem[]>(() => {
-    if (referencedItems.length === 0) {
-      return retrievedItems;
-    } else {
-      return retrievedItems
-        .filter(
-          (item) =>
-            referencedItems.findIndex(
-              (refItem) => refItem === item.DocumentId
-            ) > -1
-        )
-        .map((item) => ({
-          DocumentId: item.DocumentId,
-          DocumentTitle: item.DocumentTitle,
-          DocumentURI: item.DocumentURI,
-          Content: item.Content,
-        }));
-    }
-  }, [referencedItems, retrievedItems]);
-
-  useEffect(() => {
-    console.log(embededItems);
-  }, [embededItems]);
-
+  // チャットの処理
   const postMessage = useCallback(async () => {
     setMessages(
       produce(messages, (draft) => {
@@ -89,7 +66,7 @@ const useRag = () => {
     );
 
     setLoading(true);
-    const stream = predictStream(basicPrompt(embededItems, messages));
+    const stream = predictStream(basicPrompt(retrievedItems, messages));
     let tmp = '';
     for await (const chunk of stream) {
       tmp += chunk;
@@ -105,30 +82,61 @@ const useRag = () => {
       );
     }
     setQueueGetReference([...queueGetReference, messages.length]);
-  }, [embededItems, messages, queueGetReference]);
+  }, [messages, queueGetReference, retrievedItems]);
 
+  // 参照ドキュメントを取得する処理
   useEffect(() => {
+    console.log(queueGetReference, messages, loadingReference);
     if (
       queueGetReference.length > 0 &&
-      messages[queueGetReference[0]].content !== ''
+      messages[queueGetReference[0]].content !== '' &&
+      !loadingReference
     ) {
       (async () => {
-        const res = await predict(
-          API_ENDPOINT + '/predict',
-          referencedDocumentsPrompt(embededItems, [
-            ...messages.slice(0, queueGetReference[0] + 1),
-          ])
-        );
-        console.log(JSON.parse(res).completion);
-
         try {
+          setLoadingReference(true);
+          setMessages(
+            produce(messages, (draft) => {
+              draft[queueGetReference[0]].loadingReference = true;
+            })
+          );
+
+          // const res = await predict(
+          //   API_ENDPOINT + '/predict',
+          //   referencedDocumentsPrompt(retrievedItems, [
+          //     ...messages.slice(0, queueGetReference[0] + 1),
+          //   ])
+          // ).finally(() => {
+          //   setLoadingReference(false);
+          //   produce(messages, (draft) => {
+          //     draft[queueGetReference[0]].loadingReference = false;
+          //   });
+          // });
+
+          const stream = predictStream(
+            referencedDocumentsPrompt(retrievedItems, [
+              ...messages.slice(0, queueGetReference[0] + 1),
+            ])
+          );
+          let tmp = '';
+          for await (const chunk of stream) {
+            tmp += chunk;
+          }
+          // console.log(JSON.parse(res).completion);
+          console.log(tmp);
+
+          // const refDocs: {
+          //   DocumentId: string;
+          //   DocumentTitle: string;
+          //   DocumentURI: string;
+          // }[] = JSON.parse(
+          //   (JSON.parse(res).completion as string).replace('Assistant: ', '')
+          // );
           const refDocs: {
             DocumentId: string;
             DocumentTitle: string;
             DocumentURI: string;
-          }[] = JSON.parse(
-            (JSON.parse(res).completion as string).replace('Assistant: ', '')
-          );
+          }[] = JSON.parse(tmp);
 
           setMessages(
             // eslint-disable-next-line no-loop-func
@@ -137,23 +145,23 @@ const useRag = () => {
                 title: d.DocumentTitle,
                 uri: d.DocumentURI,
               }));
-            })
-          );
-
-          setReferencedItems(
-            produce(referencedItems, (draft) => {
-              draft.push(...refDocs.map((v) => v.DocumentId));
+              draft[queueGetReference[0]].loadingReference = false;
             })
           );
         } catch {
           console.error('参照ドキュメントの取得に失敗しました。');
+          setMessages(
+            produce(messages, (draft) => {
+              draft[queueGetReference[0]].loadingReference = false;
+            })
+          );
+        } finally {
+          setLoadingReference(false);
+          setQueueGetReference(queueGetReference.splice(1));
         }
-
-        setQueueGetReference(queueGetReference.splice(1));
       })();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queueGetReference, messages]);
+  }, [queueGetReference, messages, loadingReference, retrievedItems]);
 
   useEffect(() => {
     if (messages.length === 0) {
@@ -178,11 +186,12 @@ const useRag = () => {
         content
       );
       setRetrievedItems(
-        produce(retrievedItems, (draft) => {
-          if (res.ResultItems) {
-            draft.push(...res.ResultItems);
-          }
-        })
+        // produce(retrievedItems, (draft) => {
+        //   if (res.ResultItems) {
+        //     draft.push(...res.ResultItems);
+        //   }
+        // })
+        res.ResultItems ?? []
       );
 
       setMessages(

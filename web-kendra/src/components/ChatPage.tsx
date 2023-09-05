@@ -20,7 +20,7 @@ const ChatPage: React.FC = () => {
     <>
       <div className="w-screen grid grid-cols-10 gap-3 mb-32">
         {messages.map((m, idx) => (
-          <CardChat className="col-start-3 col-span-6" key={idx} {...m} />
+          <CardChat className="col-start-3 col-span-6" key={idx} message={m} />
         ))}
       </div>
       <div className="fixed bottom-2 w-screen flex justify-center">

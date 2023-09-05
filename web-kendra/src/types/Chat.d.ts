@@ -6,4 +6,5 @@ export type Message = {
     title: string;
     uri: string;
   }[];
+  loadingReference?: boolean;
 };
