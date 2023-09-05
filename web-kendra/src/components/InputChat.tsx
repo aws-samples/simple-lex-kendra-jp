@@ -1,6 +1,11 @@
-import { faPaperPlane, faSpinner } from '@fortawesome/free-solid-svg-icons';
+import {
+  faArrowRotateLeft,
+  faPaperPlane,
+  faSpinner,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import useRag from '../hooks/useRag';
 
 const MAX_HEIGHT = 300;
 
@@ -12,6 +17,8 @@ type Props = {
 };
 
 const InputChat: React.FC<Props> = (props) => {
+  const { messages, clearMessages } = useRag();
+
   const ref = useRef<HTMLTextAreaElement>(null);
   const [isMax, setIsMax] = useState(false);
 
@@ -57,34 +64,50 @@ const InputChat: React.FC<Props> = (props) => {
   }, [props.value]);
 
   return (
-    <div className="mb-2 flex p-2 items-end rounded-xl border bg-white border-gray-400 shadow-[0_0_10px_3px] shadow-gray-400/40 sm:w-11/12 md:w-10/12 lg:w-4/6 xl:w-3/6">
-      <textarea
-        ref={ref}
-        className={`w-full resize-none rounded p-1.5 outline-none bg-transparent ${
-          isMax ? 'overflow-y-auto' : 'overflow-hidden'
-        } border-0 focus:ring-0 `}
-        rows={1}
-        value={props.value}
-        placeholder="チャット形式でドキュメントを検索できます"
-        onChange={(e) => {
-          props.onChange(e.target.value);
-        }}
-      />
-      <button
-        className={`${
-          isEmpty ? 'text-gray-300 border' : 'border bg-blue-500 text-white'
-        } rounded-lg p-2 flex text-xl justify-center items-center`}
-        disabled={disabledSend}
-        onClick={() => {
-          props.onSend(props.value);
-        }}
-      >
-        {props.loading ? (
-          <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
-        ) : (
-          <FontAwesomeIcon icon={faPaperPlane} />
-        )}
-      </button>
+    <div className="relative sm:w-11/12 md:w-10/12 lg:w-4/6 xl:w-3/6">
+      <div className="mb-2 flex p-2 items-end rounded-xl border bg-white border-gray-400 shadow-[0_0_10px_3px] shadow-gray-400/40 ">
+        <textarea
+          ref={ref}
+          className={`w-full resize-none rounded p-1.5 outline-none bg-transparent ${
+            isMax ? 'overflow-y-auto' : 'overflow-hidden'
+          } border-0 focus:ring-0 `}
+          rows={1}
+          value={props.value}
+          placeholder="チャット形式でドキュメントを検索できます"
+          onChange={(e) => {
+            props.onChange(e.target.value);
+          }}
+        />
+        <button
+          className={`${
+            isEmpty ? 'text-gray-300 border' : 'border bg-blue-500 text-white'
+          } rounded-lg p-2 flex text-xl justify-center items-center`}
+          disabled={disabledSend}
+          onClick={() => {
+            props.onSend(props.value);
+          }}
+        >
+          {props.loading ? (
+            <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+          ) : (
+            <FontAwesomeIcon icon={faPaperPlane} />
+          )}
+        </button>
+      </div>
+      {messages.length > 0 && (
+        <div className="absolute -top-14 right-0 ">
+          <button
+            className={`border  px-3 py-2 rounded  shadow bg-white ${
+              props.loading ? 'text-gray-300' : 'text-gray-700 border-gray-400'
+            }`}
+            disabled={props.loading}
+            onClick={clearMessages}
+          >
+            <FontAwesomeIcon icon={faArrowRotateLeft} className="mr-1" />
+            会話のクリア
+          </button>
+        </div>
+      )}
     </div>
   );
 };

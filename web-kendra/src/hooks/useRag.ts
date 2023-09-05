@@ -52,6 +52,7 @@ const useRagState = create<{
   loading: boolean;
   messages: Message[];
   pushNewPredictContent: (content: string) => void;
+  clearMessages: () => void;
   getRetrieveQuery: () => Promise<string>;
   predictAnswer: (retrievedItems: RetrieveResultItem[]) => Promise<void>;
   setReference: (retrievedItems: RetrieveResultItem[]) => Promise<void>;
@@ -169,6 +170,12 @@ const useRagState = create<{
         }),
       }));
     },
+    clearMessages: () => {
+      console.log('CLEAR');
+      set(() => ({
+        messages: [],
+      }));
+    },
     getRetrieveQuery,
     predictAnswer,
     setReference,
@@ -183,11 +190,13 @@ const useRag = () => {
     getRetrieveQuery,
     setReference,
     pushNewPredictContent,
+    clearMessages,
   } = useRagState();
 
   return {
     loading,
     messages,
+    clearMessages,
     postMessage: async (content: string) => {
       pushNewPredictContent(content);
 
