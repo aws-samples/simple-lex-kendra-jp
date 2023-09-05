@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import {
-  faCommentDots,
   faRobot,
   faSpinner,
   faTriangleExclamation,
@@ -108,12 +107,7 @@ const CardChat: React.FC<Props> = (props) => {
             )}
           </>
         ) : (
-          <div className="mt-1 ml-1">
-            <FontAwesomeIcon
-              icon={faCommentDots}
-              className="animate-pulse text-lg"
-            />
-          </div>
+          <div className="mt-1 ml-1 animate-pulse">▍</div>
         )}
       </div>
     </div>

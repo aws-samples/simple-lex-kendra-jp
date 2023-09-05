@@ -55,16 +55,22 @@ const useRagState = create<{
   const predict = async (retrievedItems: RetrieveResultItem[]) => {
     try {
       const stream = predictStream(basicPrompt(retrievedItems, get().messages));
-      let tmp = '';
       for await (const chunk of stream) {
-        tmp += chunk;
-        // eslint-disable-next-line no-loop-func
         set((state) => ({
           messages: produce(state.messages, (draft) => {
-            draft[state.messages.length - 1].content = tmp;
+            const content = draft[state.messages.length - 1].content;
+            draft[state.messages.length - 1].content =
+              content.slice(0, -1) + chunk + '▍';
           }),
         }));
       }
+
+      set((state) => ({
+        messages: produce(state.messages, (draft) => {
+          const content = draft[state.messages.length - 1].content;
+          draft[state.messages.length - 1].content = content.slice(0, -1);
+        }),
+      }));
     } finally {
       set(() => ({
         loading: false,
@@ -106,6 +112,11 @@ const useRagState = create<{
       }));
     } catch {
       console.error('参照ドキュメントの取得に失敗しました。');
+      set((state) => ({
+        messages: produce(state.messages, (draft) => {
+          draft[targetIndex].references = [];
+        }),
+      }));
     } finally {
       set((state) => ({
         messages: produce(state.messages, (draft) => {
