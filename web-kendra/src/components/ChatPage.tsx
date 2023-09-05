@@ -4,16 +4,16 @@ import InputChat from './InputChat';
 import useRag from '../hooks/useRag';
 
 const ChatPage: React.FC = () => {
-  const { predict, messages, loading } = useRag();
+  const { postMessage, messages, loading } = useRag();
   const [content, setContent] = useState('');
 
   const onSend = useCallback(
     (content: string) => {
       setContent('');
 
-      predict(content);
+      postMessage(content);
     },
-    [predict]
+    [postMessage]
   );
 
   return (

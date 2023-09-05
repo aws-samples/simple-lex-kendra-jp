@@ -66,5 +66,6 @@ JSON以外の文字列は一才出力してはいけません。例外はあり�
     "DocumentTitle": "回答の参考にした「参考ドキュメント」のDocumentTitleを記載してください。",
     "DocumentURI": "回答の参考にした「参考ドキュメント」のDocumentURIを記載してください。",
 }[]
+Assistant: 
 `;
 };

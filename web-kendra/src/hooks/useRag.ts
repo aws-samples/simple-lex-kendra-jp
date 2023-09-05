@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useState } from 'react';
 import { sendQuery } from '../lib/fetcher';
 import { RetrieveResult, RetrieveResultItem } from '@aws-sdk/client-kendra';
 import { Message } from '../types/Chat';
@@ -9,6 +8,7 @@ import {
   LambdaClient,
 } from '@aws-sdk/client-lambda';
 import { basicPrompt, referencedDocumentsPrompt } from '../lib/ragPrompts';
+import { create } from 'zustand';
 
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT!;
 
@@ -27,7 +27,7 @@ const predictStream = async function* (prompt: string) {
     new InvokeWithResponseStreamCommand({
       FunctionName: process.env.REACT_APP_PREDICT_STREAM_FUNCTION_ARN,
       Payload: JSON.stringify({
-        prompt: prompt + 'Assistant: ',
+        prompt,
       }),
     })
   );
@@ -44,139 +44,117 @@ const predictStream = async function* (prompt: string) {
   }
 };
 
-const useRag = () => {
-  const [loading, setLoading] = useState(false);
-  const [loadingReference, setLoadingReference] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [queueGetReference, setQueueGetReference] = useState<number[]>([]);
-
-  const [retrievedItems, setRetrievedItems] = useState<RetrieveResultItem[]>(
-    []
-  );
-
-  // チャットの処理
-  const postMessage = useCallback(async () => {
-    setMessages(
-      produce(messages, (draft) => {
-        draft.push({
-          role: 'assistant',
-          content: '',
-        });
-      })
-    );
-
-    setLoading(true);
+const useRagState = create<{
+  loading: boolean;
+  messages: Message[];
+  pushNewPredictContent: (content: string) => void;
+  predict: (retrievedItems: RetrieveResultItem[]) => Promise<void>;
+  setReference: (retrievedItems: RetrieveResultItem[]) => Promise<void>;
+}>((set, get) => {
+  // メッセージの送信
+  const predict = async (retrievedItems: RetrieveResultItem[]) => {
     try {
-      const stream = predictStream(basicPrompt(retrievedItems, messages));
+      const stream = predictStream(basicPrompt(retrievedItems, get().messages));
       let tmp = '';
       for await (const chunk of stream) {
         tmp += chunk;
-        setMessages(
-          // eslint-disable-next-line no-loop-func
-          produce(messages, (draft) => {
-            draft.push({
-              role: 'assistant',
-              content: tmp,
-            });
-          })
-        );
+        // eslint-disable-next-line no-loop-func
+        set((state) => ({
+          messages: produce(state.messages, (draft) => {
+            draft[state.messages.length - 1].content = tmp;
+          }),
+        }));
       }
     } finally {
-      setLoading(false);
+      set(() => ({
+        loading: false,
+      }));
     }
-    setQueueGetReference([...queueGetReference, messages.length]);
-  }, [messages, queueGetReference, retrievedItems]);
+  };
 
-  // 参照ドキュメントを取得する処理
-  useEffect(() => {
-    console.log(queueGetReference, messages, loadingReference);
-    if (
-      queueGetReference.length > 0 &&
-      messages[queueGetReference[0]].content !== '' &&
-      !loadingReference
-    ) {
-      (async () => {
-        try {
-          setLoadingReference(true);
-          setMessages(
-            produce(messages, (draft) => {
-              draft[queueGetReference[0]].loadingReference = true;
-            })
-          );
+  const setReference = async (retrievedItems: RetrieveResultItem[]) => {
+    const targetIndex = get().messages.length - 1;
+    try {
+      set((state) => ({
+        messages: produce(state.messages, (draft) => {
+          draft[targetIndex].loadingReference = true;
+        }),
+      }));
 
-          const stream = predictStream(
-            referencedDocumentsPrompt(retrievedItems, [
-              ...messages.slice(0, queueGetReference[0] + 1),
-            ])
-          );
-          let tmp = '';
-          for await (const chunk of stream) {
-            tmp += chunk;
-          }
-          const refDocs: {
-            DocumentId: string;
-            DocumentTitle: string;
-            DocumentURI: string;
-          }[] = JSON.parse(tmp);
+      const stream = predictStream(
+        referencedDocumentsPrompt(retrievedItems, [
+          ...get().messages.slice(0, targetIndex + 1),
+        ])
+      );
+      let tmp = '';
+      for await (const chunk of stream) {
+        tmp += chunk;
+      }
+      const refDocs: {
+        DocumentId: string;
+        DocumentTitle: string;
+        DocumentURI: string;
+      }[] = JSON.parse(tmp);
 
-          setMessages(
-            // eslint-disable-next-line no-loop-func
-            produce(messages, (draft) => {
-              draft[queueGetReference[0]].references = refDocs.map((d) => ({
-                title: d.DocumentTitle,
-                uri: d.DocumentURI,
-              }));
-              draft[queueGetReference[0]].loadingReference = false;
-            })
-          );
-        } catch {
-          console.error('参照ドキュメントの取得に失敗しました。');
-          setMessages(
-            produce(messages, (draft) => {
-              draft[queueGetReference[0]].loadingReference = false;
-            })
-          );
-        } finally {
-          setLoadingReference(false);
-          setQueueGetReference(queueGetReference.splice(1));
-        }
-      })();
+      set((state) => ({
+        messages: produce(state.messages, (draft) => {
+          draft[targetIndex].references = refDocs.map((d) => ({
+            title: d.DocumentTitle,
+            uri: d.DocumentURI,
+          }));
+        }),
+      }));
+    } catch {
+      console.error('参照ドキュメントの取得に失敗しました。');
+    } finally {
+      set((state) => ({
+        messages: produce(state.messages, (draft) => {
+          draft[targetIndex].loadingReference = false;
+        }),
+      }));
     }
-  }, [queueGetReference, messages, loadingReference, retrievedItems]);
-
-  useEffect(() => {
-    if (messages.length === 0) {
-      return;
-    }
-    const lastMessage = messages[messages.length - 1];
-
-    if (lastMessage.role === 'user') {
-      postMessage();
-    }
-  }, [messages, postMessage]);
+  };
 
   return {
-    loading,
-    messages,
-    retrieve: (query: string) => {
-      return sendQuery<RetrieveResult>(API_ENDPOINT + '/retrieve', query);
-    },
-
-    predict: async (content: string) => {
-      const res = await sendQuery<RetrieveResult>(
-        API_ENDPOINT + '/retrieve',
-        content
-      );
-      setRetrievedItems(res.ResultItems ?? []);
-
-      setMessages(
-        produce(messages, (draft) => {
+    loading: false,
+    messages: [],
+    pushNewPredictContent: (content: string) => {
+      set((state) => ({
+        loading: true,
+        messages: produce(state.messages, (draft) => {
           draft.push({
             role: 'user',
             content: content,
           });
-        })
+          draft.push({
+            role: 'assistant',
+            content: '',
+          });
+        }),
+      }));
+    },
+    predict,
+    setReference,
+  };
+});
+
+const useRag = () => {
+  const { loading, messages, predict, setReference, pushNewPredictContent } =
+    useRagState();
+
+  return {
+    loading,
+    messages,
+    postMessage: async (content: string) => {
+      pushNewPredictContent(content);
+
+      const result = await sendQuery<RetrieveResult>(
+        API_ENDPOINT + '/retrieve',
+        content
       );
+      const retrievedItems = result.ResultItems ?? [];
+      await predict(retrievedItems);
+      await setReference(retrievedItems);
     },
   };
 };
