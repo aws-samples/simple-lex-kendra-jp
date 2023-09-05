@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { predict, sendQuery } from '../lib/fetcher';
+import { sendQuery } from '../lib/fetcher';
 import { RetrieveResult, RetrieveResultItem } from '@aws-sdk/client-kendra';
 import { Message } from '../types/Chat';
 import { produce } from 'immer';
@@ -66,20 +66,23 @@ const useRag = () => {
     );
 
     setLoading(true);
-    const stream = predictStream(basicPrompt(retrievedItems, messages));
-    let tmp = '';
-    for await (const chunk of stream) {
-      tmp += chunk;
+    try {
+      const stream = predictStream(basicPrompt(retrievedItems, messages));
+      let tmp = '';
+      for await (const chunk of stream) {
+        tmp += chunk;
+        setMessages(
+          // eslint-disable-next-line no-loop-func
+          produce(messages, (draft) => {
+            draft.push({
+              role: 'assistant',
+              content: tmp,
+            });
+          })
+        );
+      }
+    } finally {
       setLoading(false);
-      setMessages(
-        // eslint-disable-next-line no-loop-func
-        produce(messages, (draft) => {
-          draft.push({
-            role: 'assistant',
-            content: tmp,
-          });
-        })
-      );
     }
     setQueueGetReference([...queueGetReference, messages.length]);
   }, [messages, queueGetReference, retrievedItems]);
@@ -101,18 +104,6 @@ const useRag = () => {
             })
           );
 
-          // const res = await predict(
-          //   API_ENDPOINT + '/predict',
-          //   referencedDocumentsPrompt(retrievedItems, [
-          //     ...messages.slice(0, queueGetReference[0] + 1),
-          //   ])
-          // ).finally(() => {
-          //   setLoadingReference(false);
-          //   produce(messages, (draft) => {
-          //     draft[queueGetReference[0]].loadingReference = false;
-          //   });
-          // });
-
           const stream = predictStream(
             referencedDocumentsPrompt(retrievedItems, [
               ...messages.slice(0, queueGetReference[0] + 1),
@@ -122,16 +113,6 @@ const useRag = () => {
           for await (const chunk of stream) {
             tmp += chunk;
           }
-          // console.log(JSON.parse(res).completion);
-          console.log(tmp);
-
-          // const refDocs: {
-          //   DocumentId: string;
-          //   DocumentTitle: string;
-          //   DocumentURI: string;
-          // }[] = JSON.parse(
-          //   (JSON.parse(res).completion as string).replace('Assistant: ', '')
-          // );
           const refDocs: {
             DocumentId: string;
             DocumentTitle: string;
@@ -175,6 +156,7 @@ const useRag = () => {
   }, [messages, postMessage]);
 
   return {
+    loading,
     messages,
     retrieve: (query: string) => {
       return sendQuery<RetrieveResult>(API_ENDPOINT + '/retrieve', query);
@@ -185,14 +167,7 @@ const useRag = () => {
         API_ENDPOINT + '/retrieve',
         content
       );
-      setRetrievedItems(
-        // produce(retrievedItems, (draft) => {
-        //   if (res.ResultItems) {
-        //     draft.push(...res.ResultItems);
-        //   }
-        // })
-        res.ResultItems ?? []
-      );
+      setRetrievedItems(res.ResultItems ?? []);
 
       setMessages(
         produce(messages, (draft) => {

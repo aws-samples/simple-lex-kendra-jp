@@ -1,4 +1,4 @@
-import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -6,6 +6,7 @@ const MAX_HEIGHT = 300;
 
 type Props = {
   value: string;
+  loading?: boolean;
   onChange: (value: string) => void;
   onSend: (value: string) => void;
 };
@@ -13,6 +14,10 @@ type Props = {
 const InputChat: React.FC<Props> = (props) => {
   const ref = useRef<HTMLTextAreaElement>(null);
   const [isMax, setIsMax] = useState(false);
+
+  const disabledSend = useMemo<boolean>(() => {
+    return props.loading || props.value === '';
+  }, [props.loading, props.value]);
 
   useEffect(() => {
     if (!ref.current) {
@@ -34,11 +39,9 @@ const InputChat: React.FC<Props> = (props) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
 
-        props.onSend(props.value);
-
-        // if (!disabledSend) {
-        //   props.onSend();
-        // }
+        if (!disabledSend) {
+          props.onSend(props.value);
+        }
       }
     };
     const refCurrent = ref.current;
@@ -47,7 +50,7 @@ const InputChat: React.FC<Props> = (props) => {
     return () => {
       refCurrent?.removeEventListener('keypress', listener);
     };
-  }, [props, ref]);
+  }, [disabledSend, props, ref]);
 
   const isEmpty = useMemo(() => {
     return props.value === '';
@@ -69,10 +72,18 @@ const InputChat: React.FC<Props> = (props) => {
       />
       <button
         className={`${
-          isEmpty ? 'text-gray-300' : 'border bg-blue-500 text-white'
+          isEmpty ? 'text-gray-300 border' : 'border bg-blue-500 text-white'
         } rounded-lg p-2 flex text-xl justify-center items-center`}
+        disabled={disabledSend}
+        onClick={() => {
+          props.onSend(props.value);
+        }}
       >
-        <FontAwesomeIcon icon={faPaperPlane} />
+        {props.loading ? (
+          <FontAwesomeIcon icon={faSpinner} className="animate-spin" />
+        ) : (
+          <FontAwesomeIcon icon={faPaperPlane} />
+        )}
       </button>
     </div>
   );

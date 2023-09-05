@@ -4,7 +4,7 @@ import InputChat from './InputChat';
 import useRag from '../hooks/useRag';
 
 const ChatPage: React.FC = () => {
-  const { predict, messages } = useRag();
+  const { predict, messages, loading } = useRag();
   const [content, setContent] = useState('');
 
   const onSend = useCallback(
@@ -24,7 +24,12 @@ const ChatPage: React.FC = () => {
         ))}
       </div>
       <div className="fixed bottom-2 w-screen flex justify-center">
-        <InputChat value={content} onChange={setContent} onSend={onSend} />
+        <InputChat
+          value={content}
+          loading={loading}
+          onChange={setContent}
+          onSend={onSend}
+        />
       </div>
     </>
   );
