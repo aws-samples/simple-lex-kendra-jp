@@ -11,6 +11,12 @@ declare global {
       f: (
         event: {
           prompt: string;
+          params?: {
+            max_tokens_to_sample?: number;
+            temperature?: number;
+            top_k?: number;
+            top_p?: number;
+          };
         },
         responseStream: NodeJS.WritableStream,
         context: Context
@@ -38,9 +44,9 @@ export const handler = awslambda.streamifyResponse(
         max_tokens_to_sample: 3000,
         temperature: 0.7,
         top_k: 100,
-        top_p: 0.9,
-        stop_sequences: [],
+        top_p: 0.6,
         prompt: event.prompt,
+        ...event.params,
       },
       {
         headers: {

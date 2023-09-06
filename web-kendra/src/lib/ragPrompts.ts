@@ -1,6 +1,22 @@
 import { RetrieveResultItem } from '@aws-sdk/client-kendra';
 import { Message } from '../types/Chat';
 
+// 回答のランダム性をある程度持たせた設定
+export const retrieveQueryParams = {
+  max_tokens_to_sample: 100,
+  temperature: 0.5,
+  top_k: 300,
+  top_p: 0.8,
+};
+
+// 回答のランダム性をかなり低く抑えた設定
+export const answerParams = {
+  max_tokens_to_sample: 3000,
+  temperature: 0.1,
+  top_k: 100,
+  top_p: 0.6,
+};
+
 export const retrieveQueryPrompt = (queries: string[]) => {
   return `Human: あなたは、文書検索で利用するQueryを生成するAIアシスタントです。
 以下の手順通りにQueryを生成してください。
@@ -10,15 +26,15 @@ export const retrieveQueryPrompt = (queries: string[]) => {
 * 以下の「# Query履歴」の内容を全て理解してください。履歴は古い順に並んでおり、一番下が最新のQueryです。
 * 「要約して」などの指示をしているQueryは全て無視してください
 * 挨拶や雑談などのQueryは全て無視してください
-* 「〜って何？」「〜とは？」というような概要を聞く質問については、「〜の概要」と読み替えてください。
-* 「# Query履歴」の内容を考慮したQuery文を、30文字以内で生成してください。必ず新しいQueryを優先した内容にしてください。
-* 30文字以内に収まらない場合は、「# Query履歴」の古いものは無視して生成してください。
+* 「〜って何？」「〜とは？」「〜を説明して」というような概要を聞く質問については、「〜の概要」と読み替えてください。
 * 出力するQueryには必ず主語をつけてください。
+* 最も新しいQueryの内容を元に、30文字以内でQueryを生成してください。
+* 主語や背景を補完する場合は、「# Query履歴」の内容を元に補完してください。
 * Queryは「〜について」「〜を教えてください」「〜について教えます」などの語尾は絶対に使わないでください
 * 出力するQueryがない場合は、「No Query」と出力してください
 
 # Query履歴
-${queries.map((q) => `* ${q}`)}
+${queries.map((q) => `* ${q}`).join('\n')}
 
 Assistant: 
 `;

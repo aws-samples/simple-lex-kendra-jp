@@ -1,52 +1,17 @@
-import { predict, sendQuery } from '../lib/fetcher';
+import { predict, predictStream, sendQuery } from '../lib/fetcher';
 import { RetrieveResult, RetrieveResultItem } from '@aws-sdk/client-kendra';
 import { Message } from '../types/Chat';
 import { produce } from 'immer';
-import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers';
 import {
-  InvokeWithResponseStreamCommand,
-  LambdaClient,
-} from '@aws-sdk/client-lambda';
-import {
+  answerParams,
   basicPrompt,
   referencedDocumentsPrompt,
+  retrieveQueryParams,
   retrieveQueryPrompt,
 } from '../lib/ragPrompts';
 import { create } from 'zustand';
 
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT!;
-
-const predictStream = async function* (prompt: string) {
-  const region = process.env.REACT_APP_REGION!;
-  const idPoolId = process.env.REACT_APP_IDENTITY_POOL_ID!;
-  const lambda = new LambdaClient({
-    region,
-    credentials: fromCognitoIdentityPool({
-      identityPoolId: idPoolId,
-      clientConfig: { region: region },
-    }),
-  });
-
-  const res = await lambda.send(
-    new InvokeWithResponseStreamCommand({
-      FunctionName: process.env.REACT_APP_PREDICT_STREAM_FUNCTION_ARN,
-      Payload: JSON.stringify({
-        prompt,
-      }),
-    })
-  );
-  const events = res.EventStream!;
-
-  for await (const event of events) {
-    if (event.PayloadChunk) {
-      yield new TextDecoder('utf-8').decode(event.PayloadChunk.Payload);
-    }
-
-    if (event.InvokeComplete) {
-      break;
-    }
-  }
-};
 
 const useRagState = create<{
   loading: boolean;
@@ -62,7 +27,10 @@ const useRagState = create<{
     const contents = get()
       .messages.filter((m) => m.role === 'user')
       .map((m) => m.content);
-    const query = await predict(retrieveQueryPrompt(contents));
+    const query = await predict(
+      retrieveQueryPrompt(contents),
+      retrieveQueryParams
+    );
     if (query.trim() === 'No Query') {
       return contents.slice(-1)[0];
     }
@@ -72,7 +40,10 @@ const useRagState = create<{
   // メッセージの送信
   const predictAnswer = async (retrievedItems: RetrieveResultItem[]) => {
     try {
-      const stream = predictStream(basicPrompt(retrievedItems, get().messages));
+      const stream = predictStream(
+        basicPrompt(retrievedItems, get().messages),
+        answerParams
+      );
       for await (const chunk of stream) {
         set((state) => ({
           messages: produce(state.messages, (draft) => {
@@ -120,7 +91,8 @@ const useRagState = create<{
       const stream = predictStream(
         referencedDocumentsPrompt(retrievedItems, [
           ...get().messages.slice(0, targetIndex + 1),
-        ])
+        ]),
+        answerParams
       );
       let tmp = '';
       for await (const chunk of stream) {

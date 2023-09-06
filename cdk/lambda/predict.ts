@@ -1,8 +1,5 @@
 import axios from 'axios';
 import { aws4Interceptor } from 'aws4-axios';
-import { IncomingMessage } from 'http';
-import { EventStreamCodec } from '@smithy/eventstream-codec';
-import { fromUtf8, toUtf8 } from '@smithy/util-utf8';
 import * as lambda from 'aws-lambda';
 
 const api = axios.create();
@@ -20,16 +17,17 @@ export const handler = async (
   event: lambda.APIGatewayProxyEvent
 ): Promise<lambda.APIGatewayProxyResult> => {
   const prompt = JSON.parse(event.body!).prompt;
+  const params = JSON.parse(event.body!).params;
 
   const res = await api.post(
     'https://bedrock.us-east-1.amazonaws.com/model/anthropic.claude-v2/invoke',
     {
       max_tokens_to_sample: 3000,
-      temperature: 0.0,
-      top_k: 250,
-      top_p: 0.999,
-      stop_sequences: [],
+      temperature: 0.1,
+      top_k: 100,
+      top_p: 0.6,
       prompt: prompt,
+      ...params,
     },
     {
       headers: {
