@@ -89,6 +89,9 @@ export const predictStream = async function* (
     }
 
     if (event.InvokeComplete) {
+      if (event.InvokeComplete.ErrorCode) {
+        throw new Error('推論中にエラーが発生しました。');
+      }
       break;
     }
   }

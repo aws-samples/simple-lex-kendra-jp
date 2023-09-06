@@ -10,6 +10,7 @@ import {
   retrieveQueryPrompt,
 } from '../lib/ragPrompts';
 import { create } from 'zustand';
+import { useState } from 'react';
 
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT!;
 
@@ -17,6 +18,7 @@ const useRagState = create<{
   loading: boolean;
   messages: Message[];
   pushNewPredictContent: (content: string) => void;
+  removeLatestMessage: () => void;
   clearMessages: () => void;
   getRetrieveQuery: () => Promise<string>;
   predictAnswer: (retrievedItems: RetrieveResultItem[]) => Promise<void>;
@@ -146,6 +148,13 @@ const useRagState = create<{
         }),
       }));
     },
+    removeLatestMessage: () => {
+      set((state) => ({
+        messages: produce(state.messages, (draft) => {
+          draft.pop();
+        }),
+      }));
+    },
     clearMessages: () => {
       set(() => ({
         messages: [],
@@ -166,15 +175,15 @@ const useRag = () => {
     setReference,
     pushNewPredictContent,
     clearMessages,
+    removeLatestMessage,
   } = useRagState();
 
-  return {
-    loading,
-    messages,
-    clearMessages,
-    postMessage: async (content: string) => {
-      pushNewPredictContent(content);
+  const [hasError, setHasError] = useState(false);
 
+  const postMessage = async (content: string) => {
+    setHasError(false);
+    try {
+      pushNewPredictContent(content);
       const query = await getRetrieveQuery();
 
       const result = await sendQuery<RetrieveResult>(
@@ -184,6 +193,38 @@ const useRag = () => {
       const retrievedItems = result.ResultItems ?? [];
       await predictAnswer(retrievedItems);
       await setReference(retrievedItems);
+    } catch (e) {
+      console.error('回答中にエラーが発生しました。');
+      console.error(e);
+
+      setHasError(true);
+      removeLatestMessage();
+    }
+  };
+
+  return {
+    hasError,
+    loading,
+    messages,
+    clearMessages,
+    postMessage,
+    retryPostMessage: () => {
+      let lastIndex = messages.length - 1;
+
+      if (lastIndex < 0) {
+        return;
+      }
+
+      if (messages[lastIndex].role === 'assistant') {
+        const content = messages[lastIndex - 1].content;
+        removeLatestMessage();
+        removeLatestMessage();
+        postMessage(content);
+      } else {
+        const content = messages[lastIndex].content;
+        removeLatestMessage();
+        postMessage(content);
+      }
     },
   };
 };

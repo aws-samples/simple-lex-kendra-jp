@@ -3,9 +3,15 @@ import CardChat from './CardChat';
 import InputChat from './InputChat';
 import useRag from '../hooks/useRag';
 import useScroll from '../hooks/useScroll';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faArrowsRotate,
+  faTriangleExclamation,
+} from '@fortawesome/free-solid-svg-icons';
 
 const ChatPage: React.FC = () => {
-  const { postMessage, messages, loading } = useRag();
+  const { postMessage, retryPostMessage, messages, loading, hasError } =
+    useRag();
   const [content, setContent] = useState('');
   const { scrollToBottom } = useScroll();
 
@@ -32,6 +38,26 @@ const ChatPage: React.FC = () => {
             message={m}
           />
         ))}
+        {hasError && (
+          <div className="col-start-1 col-span-10">
+            <div className="flex justify-center flex-col items-center ">
+              <div className="font-bold text-red-500">
+                <FontAwesomeIcon
+                  icon={faTriangleExclamation}
+                  className="mr-2"
+                />
+                回答中にエラーが発生しました。
+              </div>
+              <button
+                className="rounded border px-3 py-2 mt-2 border-gray-400 shadow hover:brightness-50"
+                onClick={retryPostMessage}
+              >
+                <FontAwesomeIcon icon={faArrowsRotate} className="mr-2" />
+                再実行
+              </button>
+            </div>
+          </div>
+        )}
       </div>
       <div className="fixed bottom-2 w-screen flex justify-center">
         <InputChat
