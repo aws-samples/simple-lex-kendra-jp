@@ -63,7 +63,7 @@ const useRagState = create<{
       .messages.filter((m) => m.role === 'user')
       .map((m) => m.content);
     const query = await predict(retrieveQueryPrompt(contents));
-    if (query === 'No Query') {
+    if (query.trim() === 'No Query') {
       return contents.slice(-1)[0];
     }
     return query;
@@ -100,9 +100,13 @@ const useRagState = create<{
   const setReference = async (retrievedItems: RetrieveResultItem[]) => {
     const targetIndex = get().messages.length - 1;
 
-    // 「雑談はできません。」という文言が含まれている場合は、参照ドキュメントの検索は行わない
-    // Promptで雑談が入力された場合に、「雑談はできません。」を出力するように指示している
-    if (/雑談はできません。/.test(get().messages[targetIndex].content)) {
+    // 回答できないとLLMが判断した場合は、参照ドキュメントの検索は行わない
+    // Promptで回答に必要な情報がない場合や、雑談した場合に特定の文言を出力するように指示している
+    if (
+      /雑談はできません。|回答に必要な情報が見つかりませんでした。/.test(
+        get().messages[targetIndex].content
+      )
+    ) {
       return;
     }
 
@@ -171,7 +175,6 @@ const useRagState = create<{
       }));
     },
     clearMessages: () => {
-      console.log('CLEAR');
       set(() => ({
         messages: [],
       }));

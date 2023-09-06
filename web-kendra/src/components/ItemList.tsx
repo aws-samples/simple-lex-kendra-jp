@@ -75,14 +75,17 @@ function ItemList() {
 
   return (
     <div className="flex flex-col items-center w-screen">
-      <h1 className="text-4xl my-6 text-gray-600">Kendra 検索サンプル</h1>
+      <div className="relative w-screen flex justify-center">
+        <h1 className="text-4xl my-6 text-gray-600">Kendra 検索サンプル</h1>
 
-      <ButtonModeSwitch
-        className="absolute right-3 top-3"
-        chatMode={chatMode}
-        onClick={setChatMode}
-      />
-
+        <div className="absolute right-6 top-6">
+          <ButtonModeSwitch
+            className=""
+            chatMode={chatMode}
+            onClick={setChatMode}
+          />
+        </div>
+      </div>
       <form
         className={`flex items-center border border-gray-400 rounded-full py-2 px-2 w-1/2 mb-8 transition-all duration-300 ${
           chatMode ? '-scale-0 -mt-16' : ''

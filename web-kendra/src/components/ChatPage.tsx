@@ -1,20 +1,26 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import CardChat from './CardChat';
 import InputChat from './InputChat';
 import useRag from '../hooks/useRag';
+import useScroll from '../hooks/useScroll';
 
 const ChatPage: React.FC = () => {
   const { postMessage, messages, loading } = useRag();
   const [content, setContent] = useState('');
+  const { scrollToBottom } = useScroll();
 
   const onSend = useCallback(
     (content: string) => {
-      setContent('');
-
       postMessage(content);
+      setContent('');
     },
     [postMessage]
   );
+
+  useEffect(() => {
+    scrollToBottom();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
 
   return (
     <>

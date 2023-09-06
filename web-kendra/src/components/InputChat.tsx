@@ -95,7 +95,7 @@ const InputChat: React.FC<Props> = (props) => {
         </button>
       </div>
       {messages.length > 0 && (
-        <div className="absolute -top-14 right-0 ">
+        <div className="absolute -top-12 right-0 ">
           <button
             className={`border  px-3 py-2 rounded  shadow bg-white ${
               props.loading ? 'text-gray-300' : 'text-gray-700 border-gray-400'

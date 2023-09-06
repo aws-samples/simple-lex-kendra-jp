@@ -4,9 +4,14 @@ import './App.css';
 
 function App() {
   return (
-    <>
-      <ItemList />
-    </>
+    <div className="overflow-hidden">
+      <div
+        id="main"
+        className="h-screen w-screen overflow-hidden overflow-y-auto scroll-mx-0"
+      >
+        <ItemList />
+      </div>
+    </div>
   );
 }
 
