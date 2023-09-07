@@ -9,6 +9,7 @@ const useScroll = () => {
       return;
     }
     const listener = () => {
+      // 最下部までスクロールしている場合は、自動スクロールする
       if (elem.scrollTop + elem.clientHeight === elem.scrollHeight) {
         setDisabled(false);
       } else {
