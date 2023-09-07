@@ -61,17 +61,17 @@ export class SimpleKendraStack extends cdk.Stack {
       //   以下をコメントアウトすることで、"Tags" というカスタム属性を有効化できます。
       //   一度作成したカスタム属性は削除できないので、注意してください。
       //   search のオプションを全て false にすることで無効化することは可能です。
-      documentMetadataConfigurations: [
-        {
-          name: 'Tags',
-          type: 'STRING_LIST_VALUE',
-          search: {
-            facetable: true,
-            displayable: true,
-            searchable: true,
-          },
-        },
-      ],
+      // documentMetadataConfigurations: [
+      //   {
+      //     name: 'Tags',
+      //     type: 'STRING_LIST_VALUE',
+      //     search: {
+      //       facetable: true,
+      //       displayable: true,
+      //       searchable: true,
+      //     },
+      //   },
+      // ],
     });
 
     // -----
@@ -337,17 +337,6 @@ export class SimpleKendraStack extends cdk.Stack {
       })
     );
 
-    // FIXME: 仮実装
-    const assumeRolePolicy = new iam.PolicyStatement({
-      actions: ['sts:AssumeRole'],
-      resources: ['arn:aws:iam::936931980683:role/BedrockRole4RP'],
-    });
-    const bedrockRole = new iam.Role(this, 'BedrockRole', {
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    });
-    bedrockRole.addToPolicy(assumeRolePolicy);
-    // ----
-
     const predictStreamFunction = new lambda.NodejsFunction(
       this,
       'PredictStream',
@@ -355,7 +344,6 @@ export class SimpleKendraStack extends cdk.Stack {
         runtime: Runtime.NODEJS_18_X,
         entry: './lambda/predict-stream.ts',
         timeout: cdk.Duration.minutes(3),
-        role: bedrockRole,
       }
     );
     predictStreamFunction.role?.addToPrincipalPolicy(
@@ -374,7 +362,6 @@ export class SimpleKendraStack extends cdk.Stack {
       runtime: Runtime.NODEJS_18_X,
       entry: './lambda/predict.ts',
       timeout: cdk.Duration.minutes(3),
-      role: bedrockRole,
     });
 
     predictFunc.role?.addToPrincipalPolicy(
