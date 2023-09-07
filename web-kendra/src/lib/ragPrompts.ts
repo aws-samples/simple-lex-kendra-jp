@@ -17,6 +17,14 @@ export const answerParams = {
   top_p: 0.6,
 };
 
+// 参照ドキュメントを創作されると困るのでランダム要素を極限まで減らした設定
+export const referenceParams = {
+  max_tokens_to_sample: 3000,
+  temperature: 0,
+  top_k: 30,
+  top_p: 0.3,
+};
+
 export const retrieveQueryPrompt = (queries: string[]) => {
   return `Human: あなたは、文書検索で利用するQueryを生成するAIアシスタントです。
 以下の手順通りにQueryを生成してください。

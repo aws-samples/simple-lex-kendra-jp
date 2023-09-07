@@ -5,6 +5,7 @@ import { produce } from 'immer';
 import {
   answerParams,
   basicPrompt,
+  referenceParams,
   referencedDocumentsPrompt,
   retrieveQueryParams,
   retrieveQueryPrompt,
@@ -94,7 +95,7 @@ const useRagState = create<{
         referencedDocumentsPrompt(retrievedItems, [
           ...get().messages.slice(0, targetIndex + 1),
         ]),
-        answerParams
+        referenceParams
       );
       let tmp = '';
       for await (const chunk of stream) {
