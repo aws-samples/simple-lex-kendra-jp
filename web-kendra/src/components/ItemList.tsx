@@ -78,6 +78,7 @@ function ItemList() {
       <div className="relative w-screen flex justify-center">
         <h1 className="text-4xl my-6 text-gray-600">Kendra 検索サンプル</h1>
 
+        {/* <チャットモードを利用しない場合はこちらのコードを削除してください> */}
         <div className="absolute right-6 top-6">
           <ButtonModeSwitch
             className=""
@@ -171,6 +172,7 @@ function ItemList() {
         </div>
       </div>
 
+      {/* <チャットモードを利用しない場合はこちらのコードを削除してください> */}
       {chatMode && <ChatPage />}
     </div>
   );

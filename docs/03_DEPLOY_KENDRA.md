@@ -2,6 +2,12 @@
 
 > コマンドはルートディレクトリ [/simple-lex-kendra-jp](/) で実行してください。
 
+## 注意事項
+
+**2023/09 現在、Amazon Bedrock は Preview 公開となっています。利用するには、Preview の利用申請が必要です。**  
+Preview 利用申請を行っていない方は、一般提供が開始されるまでしばらくお待ちください。  
+`web-kendra/` ディレクトリ内の `<チャットモードを利用しない場合はこちらのコードを削除してください>` と記載されているコードを削除 or コメントアウトしていただければ、チャット機能を無効化することが可能です。
+
 ## デプロイメント
 
 以下のコマンドを実行してください。途中でセキュリティに関連した変更について確認が求められますので、`y` を入力して Enter キーを押下してください。確認をスキップしたい場合は、デプロイコマンドに `--require-approval never` オプションを追加してください。(これに続くドキュメントでは、以下のコマンドを単に `cdk deploy SimpleKendraStack` と記述しています。)
@@ -109,12 +115,14 @@ Kendra には[カスタム属性を設定する機能](https://docs.aws.amazon.c
 export REACT_APP_API_ENDPOINT=<Kendra API Endpoint>
 export REACT_APP_IDENTITY_POOL_ID=<Identity Pool ID>
 export REACT_APP_REGION=<Region>
+export REACT_APP_PREDICT_STREAM_FUNCTION_ARN=<Predict Stream Function ARN>
 ```
 
 - 上記 `<...>` の値は `cdk deploy SimpleKendraStack` の出力を確認して適切な値に書き換えてください。
   - `<Kendra API Endpoint>` は `SimpleKendraStack.KendraApiEndpointxxxx = ...` の形式で出力された Endpoint に `kendra` の path を追加したものを設定。最終的に https://xxxxxxxxxx.execute-api.region.amazonaws.com/prod/kendra のような値になる。
   - `<Identity Pool ID>` は `SimpleKendraStack.IdentityPoolId = ...` の値
   - `<Region>` は CDK でデプロイしたリージョン (例: ap-northeast-1)
+  - `<Predict Stream Function ARN>` は `SimpleKendraStack.PredictStreamFunctionArn = ...` の値 (Streaming Response を行う Lambda 関数の ARN)
 - `cdk deploy SimpleKendraStack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleKendraStack から Outputs タブで確認してください。
 
 続いて、3000 番ポートで待ち受けを開始します。

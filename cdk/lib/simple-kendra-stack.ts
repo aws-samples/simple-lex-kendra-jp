@@ -370,15 +370,6 @@ export class SimpleKendraStack extends cdk.Stack {
     );
     predictStreamFunction.grantInvoke(identityPool.unauthenticatedRole);
 
-    // // FIXME: 現状 Bedrock SDK が Python しか存在しないため、推論だけ別構成とする
-    // const predictFunc = new DockerImageFunction(this, 'PredictFunc', {
-    //   code: DockerImageCode.fromImageAsset('./predictor', {
-    //     platform: Platform.LINUX_AMD64,
-    //   }),
-    //   timeout: cdk.Duration.minutes(5),
-    //   role: bedrockRole,
-    // });
-
     const predictFunc = new lambda.NodejsFunction(this, 'PredictFunc', {
       runtime: Runtime.NODEJS_18_X,
       entry: './lambda/predict.ts',
@@ -396,33 +387,6 @@ export class SimpleKendraStack extends cdk.Stack {
     predictFunc.role?.grantAssumeRole(
       new iam.ServicePrincipal('bedrock.amazonaws.com')
     );
-    // ----------------------------------------
-
-    // ---実験用
-    // const predictFunc = new lambda.NodejsFunction(this, 'predictFunc', {
-    //   runtime: Runtime.NODEJS_18_X,
-    //   entry: './lambda/predict.ts',
-    //   timeout: cdk.Duration.minutes(3),
-    //   environment: {
-    //     INDEX_ID: index.ref,
-    //   },
-    //   bundling: {
-    //     // Featured Results に対応している aws-sdk を利用するため、aws-sdk をバンドルする形でビルドする
-    //     // デフォルトだと aws-sdk が ExternalModules として指定されバンドルされず、Lambda デフォルトバージョンの aws-sdk が利用されるようになる
-    //     // https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/lambda-runtimes.html
-    //     externalModules: [],
-    //   },
-    // });
-
-    // // Lambda から Kendra を呼び出せるように権限を付与
-    // predictFunc.role?.addToPrincipalPolicy(
-    //   new iam.PolicyStatement({
-    //     effect: iam.Effect.ALLOW,
-    //     resources: [cdk.Token.asString(index.getAtt('Arn'))],
-    //     actions: ['kendra:Retrieve'],
-    //   })
-    // );
-    // ---実験用終わり
 
     const syncCustomDataSourceFunc = new lambda.NodejsFunction(
       this,
@@ -586,6 +550,8 @@ export class SimpleKendraStack extends cdk.Stack {
         REACT_APP_API_ENDPOINT: `${kendraApi.url}kendra`,
         REACT_APP_IDENTITY_POOL_ID: identityPool.identityPoolId,
         REACT_APP_REGION: this.region,
+        REACT_APP_PREDICT_STREAM_FUNCTION_ARN:
+          predictStreamFunction.functionArn,
       },
     });
 
