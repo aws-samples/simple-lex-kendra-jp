@@ -115,8 +115,9 @@ const useRagState = create<{
           }));
         }),
       }));
-    } catch {
+    } catch (e) {
       console.error('参照ドキュメントの取得に失敗しました。');
+      console.error(e);
       set((state) => ({
         messages: produce(state.messages, (draft) => {
           draft[targetIndex].references = [];
