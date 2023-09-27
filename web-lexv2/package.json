@@ -1,5 +1,5 @@
 {
-  "name": "web-lexv2",
+  "name": "@aws-samples/web-lexv2",
   "private": true,
   "dependencies": {
     "@aws-sdk/client-kendra": "^3.370.0",
