@@ -1,30 +1,30 @@
-import { QueryResult } from '@aws-sdk/client-kendra';
-import { FilterType } from '../components/FilterResult';
+import { Auth } from 'aws-amplify';
 
-export const sendQuery = async (
-  api: string,
-  query: string,
-  token: string,
-  filters?: FilterType[]
-) => {
-  const res = await fetch(api, {
-    method: 'POST',
+export const getJwtToken = async () => {
+  const user = await Auth.currentAuthenticatedUser();
+  if (!user) {
+    return null;
+  }
+  return (await Auth.currentSession()).getIdToken().getJwtToken();
+};
+
+// [Auth 拡張実装] 認証トークン設定のために、fetch を Wrap した関数を利用する
+export const fetcher = async (endpoint: string, option: RequestInit) => {
+  const token = await getJwtToken();
+  if (!token) {
+    // デモのため、エラー処理は Alert を表示するだけの簡易的な実装
+    alert(
+      '認証トークンが取得できませんでした。サインアウトしてから再度試してみてください。'
+    );
+    throw new Error('ログインしていません。');
+  }
+
+  return fetch(endpoint, {
     headers: {
       'Content-Type': 'application/json',
       // [Auth 拡張実装] 認証用ヘッダを設定
       Authorization: token,
     },
-    body: JSON.stringify({
-      query,
-      filters,
-    }),
+    ...option,
   });
-
-  if (!res.ok) {
-    throw new Error(`API Error (${res.status})`);
-  }
-
-  const result: QueryResult = await res.json();
-
-  return result;
 };

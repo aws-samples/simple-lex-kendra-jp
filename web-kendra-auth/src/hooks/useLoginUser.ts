@@ -13,7 +13,6 @@ const useLoginUser = () => {
   }, []);
 
   return {
-    token: session?.getIdToken().getJwtToken() ?? null,
     userGroup: session?.getIdToken().payload['cognito:groups'] ?? null,
     email: session?.getIdToken().payload['email'] ?? null,
   };

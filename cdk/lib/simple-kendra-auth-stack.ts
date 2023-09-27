@@ -79,6 +79,21 @@ export class SimpleKendraAuthStack extends cdk.Stack {
       refreshTokenValidity: cdk.Duration.days(30),
     });
 
+    // [Auth 拡張実装] 認証済み Cognito Pool ユーザに対して権限を付与する
+    const identityPool = new idPool.IdentityPool(
+      this,
+      'IdentityPoolForKendraAuth',
+      {
+        authenticationProviders: {
+          userPools: [
+            new idPool.UserPoolAuthenticationProvider({
+              userPool,
+              userPoolClient,
+            }),
+          ],
+        },
+      }
+    );
     // -----
     // Kendra Index の作成
     // -----
@@ -109,17 +124,17 @@ export class SimpleKendraAuthStack extends cdk.Stack {
       //   以下をコメントアウトすることで、"Tags" というカスタム属性を有効化できます。
       //   一度作成したカスタム属性は削除できないので、注意してください。
       //   search のオプションを全て false にすることで無効化することは可能です。
-      // documentMetadataConfigurations: [
-      //   {
-      //     name: 'Tags',
-      //     type: 'STRING_LIST_VALUE',
-      //     search: {
-      //       facetable: true,
-      //       displayable: true,
-      //       searchable: true,
-      //     },
-      //   },
-      // ],
+      documentMetadataConfigurations: [
+        {
+          name: 'Tags',
+          type: 'STRING_LIST_VALUE',
+          search: {
+            facetable: true,
+            displayable: true,
+            searchable: true,
+          },
+        },
+      ],
 
       // [Auth 拡張実装] トークンベースのアクセス制御を実施
       // 参考: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kendra-index.html#cfn-kendra-index-usercontextpolicy
@@ -152,6 +167,15 @@ export class SimpleKendraAuthStack extends cdk.Stack {
       serverAccessLogsPrefix: 'logs',
       enforceSSL: true,
     });
+
+    // [Auth 拡張実装] Authenticated User に以下の権限 (S3) を付与
+    identityPool.authenticatedRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['s3:GetObject'],
+        resources: [dataSourceBucket.arnForObjects('*')],
+      })
+    );
 
     // [Auth 拡張実装] デプロイするまで S3 バケット名がわからないため、プログラムの中で動的に JSON ファイルを生成する
     // S3 バケット名がわかっている場合は、静的な JSON ファイルを用意することで問題ありません
@@ -256,6 +280,83 @@ export class SimpleKendraAuthStack extends cdk.Stack {
         actions: ['kendra:Query'],
       })
     );
+    //----
+    const assumeRolePolicy = new iam.PolicyStatement({
+      actions: ['sts:AssumeRole'],
+      resources: ['arn:aws:iam::936931980683:role/BedrockRole4RP'],
+    });
+    const bedrockRole = new iam.Role(this, 'BedrockRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    });
+    bedrockRole.addToPolicy(assumeRolePolicy);
+
+    //----
+
+    const retrieveFunc = new lambda.NodejsFunction(this, 'RetrieveFunc', {
+      runtime: Runtime.NODEJS_18_X,
+      entry: './lambda/retrieve.ts',
+      timeout: cdk.Duration.minutes(3),
+      environment: {
+        INDEX_ID: index.ref,
+      },
+      bundling: {
+        // Featured Results に対応している aws-sdk を利用するため、aws-sdk をバンドルする形でビルドする
+        // デフォルトだと aws-sdk が ExternalModules として指定されバンドルされず、Lambda デフォルトバージョンの aws-sdk が利用されるようになる
+        // https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/lambda-runtimes.html
+        externalModules: [],
+      },
+    });
+
+    // Lambda から Kendra を呼び出せるように権限を付与
+    retrieveFunc.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: [cdk.Token.asString(index.getAtt('Arn'))],
+        actions: ['kendra:Retrieve'],
+      })
+    );
+
+    const predictStreamFunction = new lambda.NodejsFunction(
+      this,
+      'PredictStream',
+      {
+        runtime: Runtime.NODEJS_18_X,
+        entry: './lambda/predict-stream.ts',
+        timeout: cdk.Duration.minutes(3),
+        role: bedrockRole,
+      }
+    );
+    predictStreamFunction.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: ['*'],
+        actions: ['bedrock:*', 'logs:*'],
+      })
+    );
+    predictStreamFunction.role?.grantAssumeRole(
+      new iam.ServicePrincipal('bedrock.amazonaws.com')
+    );
+
+    // [Auth 拡張実装] フロントエンドから SDK で直接実行するので IdentityPool で権限制御
+    predictStreamFunction.grantInvoke(identityPool.authenticatedRole);
+
+    const predictFunc = new lambda.NodejsFunction(this, 'PredictFunc', {
+      runtime: Runtime.NODEJS_18_X,
+      entry: './lambda/predict.ts',
+      timeout: cdk.Duration.minutes(3),
+      role: bedrockRole,
+    });
+
+    predictFunc.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: ['*'],
+        actions: ['bedrock:*', 'logs:*'],
+      })
+    );
+    predictFunc.role?.grantAssumeRole(
+      new iam.ServicePrincipal('bedrock.amazonaws.com')
+    );
 
     const apiLogGroup = new logs.LogGroup(this, 'KendraAuthApiLog');
 
@@ -298,6 +399,18 @@ export class SimpleKendraAuthStack extends cdk.Stack {
       authorizer,
     });
 
+    const ragEndpoint = kendraEndpoint.addResource('retrieve');
+    ragEndpoint.addMethod('POST', new agw.LambdaIntegration(retrieveFunc), {
+      authorizationType: agw.AuthorizationType.COGNITO,
+      authorizer,
+    });
+
+    const predictEndpoint = kendraEndpoint.addResource('predict');
+    predictEndpoint.addMethod('POST', new agw.LambdaIntegration(predictFunc), {
+      authorizationType: agw.AuthorizationType.COGNITO,
+      authorizer,
+    });
+
     const apiWebAcl = new CommonWebAcl(this, 'KendraAuthApiWebAcl', {
       scope: 'REGIONAL',
     });
@@ -310,35 +423,6 @@ export class SimpleKendraAuthStack extends cdk.Stack {
       resourceArn: restApiArn,
       webAclArn: apiWebAcl.webAcl.attrArn,
     });
-
-    // -----
-    // Identity Pool の作成
-    // -----
-
-    // [Auth 拡張実装] 認証済み Cognito Pool ユーザに対して権限を付与する
-    const identityPool = new idPool.IdentityPool(
-      this,
-      'IdentityPoolForKendraAuth',
-      {
-        authenticationProviders: {
-          userPools: [
-            new idPool.UserPoolAuthenticationProvider({
-              userPool,
-              userPoolClient,
-            }),
-          ],
-        },
-      }
-    );
-
-    // Authenticated User に以下の権限 (S3) を付与
-    identityPool.authenticatedRole.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['s3:GetObject'],
-        resources: [dataSourceBucket.arnForObjects('*')],
-      })
-    );
 
     // -----
     // Frontend のデプロイ
@@ -403,6 +487,8 @@ export class SimpleKendraAuthStack extends cdk.Stack {
         REACT_APP_API_ENDPOINT: `${kendraApi.url}kendra`,
         REACT_APP_IDENTITY_POOL_ID: identityPool.identityPoolId,
         REACT_APP_REGION: this.region,
+        REACT_APP_PREDICT_STREAM_FUNCTION_ARN:
+          predictStreamFunction.functionArn,
         // [Auth 拡張実装] Cognito の環境情報を設定
         REACT_APP_USER_POOL_ID: userPool.userPoolId,
         REACT_APP_USER_POOL_CLIENT_ID: userPoolClient.userPoolClientId,
@@ -427,6 +513,10 @@ export class SimpleKendraAuthStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'KendraSampleFrontend', {
       value: `https://${cloudFrontWebDistribution.distributionDomainName}`,
+    });
+
+    new cdk.CfnOutput(this, 'PredictStreamFunctionArn', {
+      value: predictStreamFunction.functionArn,
     });
 
     // [Auth 拡張実装] Cognito の情報を出力

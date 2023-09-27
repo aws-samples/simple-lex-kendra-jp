@@ -3,7 +3,7 @@ import { faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React, { useRef, useState } from 'react';
 import { useEffect } from 'react';
-import useLoginUser from '../lib/useLoginUser';
+import useLoginUser from '../hooks/useLoginUser';
 
 type Props = {
   onSignOut: SignOut;
@@ -38,7 +38,7 @@ const Menu: React.FC<Props> = ({ onSignOut }) => {
   }, [menuRef]);
 
   return (
-    <div className="absolute top-1 right-1">
+    <div className="absolute top-1 right-1 z-50">
       <div className="flex justify-end">
         <button
           ref={buttonRef}

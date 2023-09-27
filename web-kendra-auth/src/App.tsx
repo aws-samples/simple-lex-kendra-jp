@@ -39,8 +39,15 @@ function App() {
       >
         {({ signOut }) => (
           <>
-            <Menu onSignOut={signOut ?? (() => {})} />
-            <ItemList />
+            <div className="overflow-hidden">
+              <div
+                id="main"
+                className=" relative h-screen w-screen overflow-hidden overflow-y-auto scroll-mx-0"
+              >
+                <Menu onSignOut={signOut ?? (() => {})} />
+                <ItemList />
+              </div>
+            </div>
           </>
         )}
       </Authenticator>

@@ -31,6 +31,7 @@ api.interceptors.request.use(
     options: {
       region: 'us-east-1',
       service: 'bedrock',
+      assumeRoleArn: 'arn:aws:iam::936931980683:role/BedrockRole4RP',
     },
   })
 );
@@ -72,7 +73,6 @@ export const handler = awslambda.streamifyResponse(
           'base64'
         ).toString()
       );
-      // console.log(body);
       if (body.completion) {
         responseStream.write(body.completion);
       }
