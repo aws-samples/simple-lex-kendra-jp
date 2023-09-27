@@ -1,5 +1,5 @@
 {
-  "name": "simple-lex-kendra-jp",
+  "name": "@aws-samples/simple-lex-kendra-jp",
   "private": true,
   "bin": {
     "simple-lex-kendra-jp": "bin/simple-lex-kendra-jp.js"

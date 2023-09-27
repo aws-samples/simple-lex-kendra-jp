@@ -1,5 +1,5 @@
 {
-  "name": "web-kendra",
+  "name": "@aws-samples/web-kendra",
   "private": true,
   "dependencies": {
     "@aws-sdk/client-kendra": "^3.370.0",

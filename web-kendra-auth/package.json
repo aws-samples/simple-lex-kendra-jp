@@ -1,5 +1,5 @@
 {
-  "name": "web-kendra-auth",
+  "name": "@aws-samples/web-kendra-auth",
   "private": true,
   "dependencies": {
     "@aws-amplify/ui-react": "^5.0.4",

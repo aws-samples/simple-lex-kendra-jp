@@ -1,5 +1,6 @@
 {
-  "name": "lambda",
+  "name": "@aws-samples/lambda",
+  "private": true,
   "dependencies": {
     "@aws-sdk/client-kendra": "^3.363.0",
     "@types/aws-lambda": "^8.10.109"
