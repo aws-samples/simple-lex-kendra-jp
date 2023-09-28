@@ -84,7 +84,12 @@ Human: Reference documents
 Assistant: Start
 ${referenceItems
   .map((item) => {
-    return `Human: ${JSON.stringify(item)}
+    return `Human: ${JSON.stringify({
+      DocumentId: item.DocumentId,
+      DocumentTitle: item.DocumentTitle,
+      DocumentURI: item.DocumentURI,
+      Content: item.Content,
+    })}
 Assistant: Please continue`;
   })
   .join('\n')}
