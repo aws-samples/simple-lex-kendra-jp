@@ -2,6 +2,12 @@
 
 > コマンドはルートディレクトリ [/simple-lex-kendra-jp](/) で実行してください。
 
+## 注意事項
+
+**2023/09 現在、Amazon Bedrock は Preview 公開となっています。利用するには、Preview の利用申請が必要です。**  
+Preview 利用申請を行っていない方は、一般提供が開始されるまでしばらくお待ちください。  
+`web-kendra-auth/` ディレクトリ内の `<チャットモードを利用しない場合はこちらのコードを削除してください>` と記載されているコードを削除 or コメントアウトしていただければ、チャット機能を無効化することが可能です。
+
 ## 概要
 「Amazon Kendra プロジェクト」では、認証無しで利用できる Kendra のシステムをデプロイしました。  
 「Amazon Kendra Auth プロジェクト」では、認証・認可の機能を確認できます。  
@@ -134,6 +140,7 @@ Kendra には[カスタム属性を設定する機能](https://docs.aws.amazon.c
 export REACT_APP_API_ENDPOINT=<Kendra API Endpoint>
 export REACT_APP_IDENTITY_POOL_ID=<Identity Pool ID>
 export REACT_APP_REGION=<Region>
+export REACT_APP_PREDICT_STREAM_FUNCTION_ARN=<Predict Stream Function ARN>
 export REACT_APP_USER_POOL_ID=<Cognito User Pool ID>
 export REACT_APP_USER_POOL_CLIENT_ID=<Cognito User Pool Client ID>
 ```
@@ -142,6 +149,7 @@ export REACT_APP_USER_POOL_CLIENT_ID=<Cognito User Pool Client ID>
   - `<Kendra API Endpoint>` は `SimpleKendraAuthStack.KendraApiEndpointxxxx = ...` の形式で出力された Endpoint に `kendra` の path を追加したものを設定。最終的に https://xxxxxxxxxx.execute-api.region.amazonaws.com/prod/kendra のような値になる。
   - `<Identity Pool ID>` は `SimpleKendraAuthStack.IdentityPoolId = ...` の値
   - `<Region>` は CDK でデプロイしたリージョン (例: ap-northeast-1)
+  - `<Predict Stream Function ARN>` は `SimpleKendraAuthStack.PredictStreamFunctionArn = ...` の値 (Streaming Response を行う Lambda 関数の ARN)
   - `<Cognito User Pool ID>` は `SimpleKendraAuthStack.CognitoUserPoolId = ...` の値
   - `<Cognito User Pool Client ID>` は `SimpleKendraAuthStack.CognitoUserPoolClientId = ...` の値
 - `cdk deploy SimpleKendraAuthStack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleKendraAuthStack から Outputs タブで確認してください。

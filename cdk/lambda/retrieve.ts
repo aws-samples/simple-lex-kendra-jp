@@ -103,7 +103,6 @@ exports.handler = async (
       }
     });
   }
-  console.log('AttributeFilter', JSON.stringify(attributeFilter));
 
   const kendra = new KendraClient({});
   const retrieveCommand = new RetrieveCommand({

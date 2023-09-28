@@ -1,7 +1,7 @@
 {
   "name": "lambda",
   "dependencies": {
-    "@aws-sdk/client-kendra": "^3.363.0",
+    "@aws-sdk/client-kendra": "^3.421.0",
     "@smithy/eventstream-codec": "^2.0.5",
     "@smithy/util-utf8": "^2.0.0",
     "@types/aws-lambda": "^8.10.109",
