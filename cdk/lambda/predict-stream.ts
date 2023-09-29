@@ -1,9 +1,8 @@
-import axios from 'axios';
-import { aws4Interceptor } from 'aws4-axios';
-import { IncomingMessage } from 'http';
-import { EventStreamCodec } from '@smithy/eventstream-codec';
-import { fromUtf8, toUtf8 } from '@smithy/util-utf8';
 import { Context, Handler } from 'aws-lambda';
+import {
+  BedrockRuntimeClient,
+  InvokeModelWithResponseStreamCommand,
+} from '@aws-sdk/client-bedrock-runtime';
 
 declare global {
   namespace awslambda {
@@ -25,52 +24,35 @@ declare global {
   }
 }
 
-const api = axios.create();
-api.interceptors.request.use(
-  aws4Interceptor({
-    options: {
-      region: 'us-east-1',
-      service: 'bedrock',
-    },
-  })
-);
-
 export const handler = awslambda.streamifyResponse(
   async (event, responseStream, context) => {
-    const res = await api.post(
-      'https://bedrock.us-east-1.amazonaws.com/model/anthropic.claude-v2/invoke-with-response-stream',
-      {
+    const client = new BedrockRuntimeClient({ region: 'us-east-1' });
+    const command = new InvokeModelWithResponseStreamCommand({
+      modelId: 'anthropic.claude-v2',
+      body: JSON.stringify({
         max_tokens_to_sample: 3000,
         temperature: 0.7,
         top_k: 100,
         top_p: 0.6,
         prompt: event.prompt,
         ...event.params,
-      },
-      {
-        headers: {
-          Accept: '*/*',
-          'Content-Type': 'application/json',
-          'X-Amzn-Bedrock-Save': 1, // true | false
-        },
-        responseType: 'stream',
-      }
-    );
+      }),
+      contentType: 'application/json',
+    });
 
-    const stream: IncomingMessage = res.data;
-    for await (const chunk of stream) {
-      const event = new EventStreamCodec(toUtf8, fromUtf8).decode(chunk);
-      if (
-        event.headers[':event-type'].value !== 'chunk' ||
-        event.headers[':content-type'].value !== 'application/json'
-      ) {
-        throw Error(`Failed to get event chunk: got ${chunk}`);
+    const res = await client.send(command);
+
+    if (!res.body) {
+      responseStream.end();
+      return;
+    }
+
+    for await (const streamChunk of res.body) {
+      if (!streamChunk.chunk?.bytes) {
+        break;
       }
       const body = JSON.parse(
-        Buffer.from(
-          JSON.parse(new TextDecoder('utf-8').decode(event.body)).bytes,
-          'base64'
-        ).toString()
+        new TextDecoder('utf-8').decode(streamChunk.chunk?.bytes)
       );
       if (body.completion) {
         responseStream.write(body.completion);

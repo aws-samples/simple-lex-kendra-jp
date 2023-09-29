@@ -13,13 +13,8 @@ import { GeoRestriction } from 'aws-cdk-lib/aws-cloudfront';
 import { NodejsBuild } from 'deploy-time-build';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
 import { DataSource, Faq, CommonWebAcl } from './constructs';
-import {
-  DockerImageCode,
-  DockerImageFunction,
-  Runtime,
-} from 'aws-cdk-lib/aws-lambda';
+import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { NagSuppressions } from 'cdk-nag';
-import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 
 export interface SimpleKendraStackProps extends cdk.StackProps {
   webAclCloudFront: waf.CfnWebACL;
@@ -321,7 +316,7 @@ export class SimpleKendraStack extends cdk.Stack {
         INDEX_ID: index.ref,
       },
       bundling: {
-        // Featured Results に対応している aws-sdk を利用するため、aws-sdk をバンドルする形でビルドする
+        // Retrieve に対応している aws-sdk を利用するため、aws-sdk をバンドルする形でビルドする
         // デフォルトだと aws-sdk が ExternalModules として指定されバンドルされず、Lambda デフォルトバージョンの aws-sdk が利用されるようになる
         // https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/lambda-runtimes.html
         externalModules: [],
@@ -344,6 +339,12 @@ export class SimpleKendraStack extends cdk.Stack {
         runtime: Runtime.NODEJS_18_X,
         entry: './lambda/predict-stream.ts',
         timeout: cdk.Duration.minutes(3),
+        bundling: {
+          // Bedrock に対応している aws-sdk を利用するため、aws-sdk をバンドルする形でビルドする
+          // デフォルトだと aws-sdk が ExternalModules として指定されバンドルされず、Lambda デフォルトバージョンの aws-sdk が利用されるようになる
+          // https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/lambda-runtimes.html
+          externalModules: [],
+        },
       }
     );
     predictStreamFunction.role?.addToPrincipalPolicy(
@@ -362,6 +363,13 @@ export class SimpleKendraStack extends cdk.Stack {
       runtime: Runtime.NODEJS_18_X,
       entry: './lambda/predict.ts',
       timeout: cdk.Duration.minutes(3),
+      depsLockFilePath: './lambda/package-lock.json',
+      bundling: {
+        // Bedrock に対応している aws-sdk を利用するため、aws-sdk をバンドルする形でビルドする
+        // デフォルトだと aws-sdk が ExternalModules として指定されバンドルされず、Lambda デフォルトバージョンの aws-sdk が利用されるようになる
+        // https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/lambda-runtimes.html
+        externalModules: [],
+      },
     });
 
     predictFunc.role?.addToPrincipalPolicy(
