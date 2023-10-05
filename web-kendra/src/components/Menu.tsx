@@ -9,7 +9,7 @@ type Props = {
   onSignOut: SignOut;
 };
 
-// [Auth 拡張実装] 認証時に表示するメニューコンポーネント
+// 認証時に表示するメニューコンポーネント
 const Menu: React.FC<Props> = ({ onSignOut }) => {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);

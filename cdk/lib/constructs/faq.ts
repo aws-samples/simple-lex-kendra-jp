@@ -1,48 +1,86 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as kendra from 'aws-cdk-lib/aws-kendra';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as s3Deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import { CreateFaqCommandInput } from '@aws-sdk/client-kendra';
+import { FaqCustomResource } from './faq-custom-resource';
 
-const UUID = 'A570DE89-B172-47D2-B249-3F0E65C6D971';
-
-export interface FaqProps extends CreateFaqCommandInput {}
+export interface FaqProps {
+  index: kendra.CfnIndex;
+}
 
 export class Faq extends Construct {
-  public readonly resource: cdk.CustomResource;
-
   constructor(scope: Construct, id: string, props: FaqProps) {
     super(scope, id);
 
-    const customResourceHandler = new lambda.SingletonFunction(
-      this,
-      'CustomResourceFaqHandler',
-      {
-        runtime: lambda.Runtime.NODEJS_18_X,
-        code: lambda.Code.fromAsset('custom-resources'),
-        handler: 'faq.handler',
-        uuid: UUID,
-        lambdaPurpose: 'CustomResourceFaq',
-        timeout: cdk.Duration.minutes(15),
-      }
-    );
+    const faqBucket = new s3.Bucket(this, 'FaqBucket', {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      autoDeleteObjects: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
+      serverAccessLogsPrefix: 'logs',
+      enforceSSL: true,
+    });
 
-    customResourceHandler.role?.addToPrincipalPolicy(
+    new s3Deploy.BucketDeployment(this, 'DeployFaq', {
+      sources: [s3Deploy.Source.asset('./faq')],
+      destinationBucket: faqBucket,
+      destinationKeyPrefix: 'faq',
+    });
+
+    const faqRole = new iam.Role(this, 'FaqRole', {
+      assumedBy: new iam.ServicePrincipal('kendra.amazonaws.com'),
+    });
+
+    faqRole.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        resources: ['*'],
-        actions: ['kendra:CreateFaq', 'kendra:DeleteFaq', 'iam:PassRole'],
+        resources: [`arn:aws:s3:::${faqBucket.bucketName}/*`],
+        actions: ['s3:GetObject'],
       })
     );
 
-    this.resource = new cdk.CustomResource(this, `CustomResourceFaq${id}`, {
-      serviceToken: customResourceHandler.functionArn,
-      resourceType: 'Custom::Faq',
-      // https://github.com/aws-cloudformation/cloudformation-coverage-roadmap/issues/1037
-      // props の型が勝手に変換されてしまう問題があるため、一旦 json に変換
-      properties: {
-        props: JSON.stringify(props),
+    const simpleFaq = new FaqCustomResource(this, 'SimpleCsvFaq', {
+      IndexId: props.index.ref,
+      LanguageCode: 'ja',
+      FileFormat: 'CSV',
+      Name: 'simple-faq',
+      RoleArn: faqRole.roleArn,
+      S3Path: {
+        Bucket: faqBucket.bucketName,
+        Key: 'faq/simple.csv',
       },
     });
+
+    const kendraFaq = new FaqCustomResource(this, 'KendraFaq', {
+      IndexId: props.index.ref,
+      LanguageCode: 'ja',
+      FileFormat: 'CSV_WITH_HEADER',
+      Name: 'Kendra-faq',
+      RoleArn: faqRole.roleArn,
+      S3Path: {
+        Bucket: faqBucket.bucketName,
+        Key: 'faq/Amazon-Kendra.csv',
+      },
+    });
+
+    const lexFaq = new FaqCustomResource(this, 'LexFaq', {
+      IndexId: props.index.ref,
+      LanguageCode: 'ja',
+      FileFormat: 'CSV_WITH_HEADER',
+      Name: 'Lex-faq',
+      RoleArn: faqRole.roleArn,
+      S3Path: {
+        Bucket: faqBucket.bucketName,
+        Key: 'faq/Amazon-Lex.csv',
+      },
+    });
+
+    // Kendra の API スロットリングエラーを回避するために
+    // 明示的に依存関係を追加 (逐次作成されるように)
+    lexFaq.node.addDependency(kendraFaq);
+    kendraFaq.node.addDependency(simpleFaq);
   }
 }

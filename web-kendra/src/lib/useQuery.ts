@@ -9,7 +9,7 @@ const useQuery = () => {
 
   return {
     send: async (query: string, filters?: FilterType[]) => {
-      // [Auth 拡張実装] JWT トークンが取得できていない場合は処理しない
+      // JWT トークンが取得できていない場合は処理しない
       if (!token) {
         // デモのため、エラー処理は Alert を表示するだけの簡易的な実装
         alert(
@@ -18,7 +18,7 @@ const useQuery = () => {
         return;
       }
 
-      // [Auth 拡張実装] 認証用の JWT トークンの設定
+      // 認証用の JWT トークンの設定
       return sendQuery(API_ENDPOINT, query, token, filters);
     },
   };

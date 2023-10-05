@@ -110,6 +110,10 @@ exports.handler = async (
     IndexId: INDEX_ID,
     QueryText: query,
     AttributeFilter: attributeFilter,
+    // トークンでアクセス制限を実施
+    UserContext: {
+      Token: event.headers['Authorization'],
+    },
   });
 
   const queryRes = await kendra.send(queryCommand);

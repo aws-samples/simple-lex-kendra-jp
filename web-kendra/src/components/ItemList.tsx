@@ -14,12 +14,10 @@ import {
   QueryResultItem,
   FacetResult,
 } from '@aws-sdk/client-kendra';
-import { sendQuery } from '../lib/fetcher';
 import { useForm } from 'react-hook-form';
 import './ItemList.css';
+import useQuery from '../lib/useQuery';
 import FilterResult, { FilterType } from './FilterResult';
-
-const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT!;
 
 interface Query {
   query: string;
@@ -40,19 +38,23 @@ function ItemList() {
 
   const watchQuery = watch('query', '');
 
+  // アクセストークン設定の処理
+  const { send } = useQuery();
+
   useEffect(() => {
     if (query) {
       setQueryOnce(true);
       setLoading(true);
       setItems([]);
       setFeaturedResults([]);
-      sendQuery(API_ENDPOINT, query, filters).then((result) => {
-        setItems(result.ResultItems ?? []);
-        setFacets(result.FacetResults ?? []);
-        setFeaturedResults(result.FeaturedResultsItems ?? []);
+      send(query, filters).then((result) => {
+        setItems(result?.ResultItems ?? []);
+        setFacets(result?.FacetResults ?? []);
+        setFeaturedResults(result?.FeaturedResultsItems ?? []);
         setLoading(false);
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, query]);
 
   const onSubmit = async (data: Query) => {
@@ -99,7 +101,6 @@ function ItemList() {
       </form>
 
       <div className="w-full border border-b-0 border-gray-400 mb-4" />
-
       {queryOnce &&
         !loading &&
         items.length === 0 &&

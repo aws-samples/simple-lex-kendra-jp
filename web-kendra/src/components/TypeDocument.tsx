@@ -7,9 +7,12 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { fromCognitoIdentityPool } from '@aws-sdk/credential-providers';
 import HighlightText from './HighlightText';
+import useLoginUser from '../lib/useLoginUser';
 
 const IDENTITY_POOL_ID = process.env.REACT_APP_IDENTITY_POOL_ID!;
+const USER_POOL_ID = process.env.REACT_APP_USER_POOL_ID!;
 const REGION = process.env.REACT_APP_REGION!;
+const COGNITO_ID = `cognito-idp.${REGION}.amazonaws.com/${USER_POOL_ID}`;
 
 interface TypeDocumentProps {
   item: QueryResultItem;
@@ -19,6 +22,7 @@ interface TypeDocumentProps {
 }
 
 function TypeDocument(props: TypeDocumentProps) {
+  const { token } = useLoginUser();
   const { title, body, hasDocumentURI, hasS3DocumentURI, downloadFile } =
     useMemo(() => {
       const title: TextWithHighlights = props.item.DocumentTitle || {
@@ -35,6 +39,15 @@ function TypeDocument(props: TypeDocumentProps) {
         props.item.DocumentURI?.startsWith('https://s3.');
 
       const downloadFile = async (event: any): Promise<void> => {
+        // JWT トークンが取得できていない場合は処理しない
+        if (!token) {
+          // デモのため、エラー処理は Alert を表示するだけの簡易的な実装
+          alert(
+            '認証トークンが取得できませんでした。サインアウトしてから再度試してみてください。'
+          );
+          return;
+        }
+
         const bucket_keys = new URL(props.item.DocumentURI!).pathname.split(
           '/'
         );
@@ -45,6 +58,10 @@ function TypeDocument(props: TypeDocumentProps) {
           credentials: fromCognitoIdentityPool({
             identityPoolId: IDENTITY_POOL_ID,
             clientConfig: { region: REGION },
+            // ログイン情報を付与する
+            logins: {
+              [COGNITO_ID]: token,
+            },
           }),
         });
 
@@ -66,7 +83,7 @@ function TypeDocument(props: TypeDocumentProps) {
       };
 
       return { title, body, hasDocumentURI, hasS3DocumentURI, downloadFile };
-    }, [props]);
+    }, [props, token]);
 
   return (
     <div
