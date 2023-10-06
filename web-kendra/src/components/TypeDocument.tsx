@@ -54,7 +54,7 @@ function TypeDocument(props: TypeDocumentProps) {
 
         const getObject = new GetObjectCommand({
           Bucket: bucket,
-          Key: key,
+          Key: decodeURIComponent(key),
           ResponseContentType: contentType,
         });
 
