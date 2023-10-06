@@ -2,7 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as kendra from 'aws-cdk-lib/aws-kendra';
 import * as waf from 'aws-cdk-lib/aws-wafv2';
-import { KendraIndex, Auth, Api, Web, S3DataSource, CustomDataSource } from './constructs';
+import { KendraIndex, Auth, Api, Web, S3DataSource, CustomDataSource, Faq } from './constructs';
 import { NagSuppressions } from 'cdk-nag';
 
 export interface SimpleKendraStackProps extends cdk.StackProps {
@@ -26,6 +26,10 @@ export class SimpleKendraStack extends cdk.Stack {
     });
 
     new CustomDataSource(this, 'CustomDataSource', {
+      index: kendraIndex.index,
+    });
+
+    new Faq(this, 'Faq', {
       index: kendraIndex.index,
     });
 

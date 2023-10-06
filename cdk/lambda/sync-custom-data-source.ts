@@ -21,6 +21,8 @@ const demoDocuments = [
 interface SyncCustomDataSourceProps {}
 
 exports.handler = async (_props: SyncCustomDataSourceProps): Promise<void> => {
+  console.log(INDEX_ID, DATA_SOURCE_ID);
+
   const kendra = new KendraClient({});
   const startDataSourceSyncJobCommand = new StartDataSourceSyncJobCommand({
     Id: DATA_SOURCE_ID,
@@ -36,7 +38,9 @@ exports.handler = async (_props: SyncCustomDataSourceProps): Promise<void> => {
       Id: d.id,
       Title: d.title,
       Blob: new TextEncoder().encode(d.content),
-      ContentType: 'PLAIN_TEXT', // Web コンテンツなら HTML のままの方がベター (汎用的な例として PLAIN_TEXT を採用)
+      // Web コンテンツなら HTML のままの方がベター (汎用的な例として PLAIN_TEXT を採用)
+      // https://docs.aws.amazon.com/kendra/latest/APIReference/API_Document.html#kendra-Type-Document-ContentType
+      ContentType: 'PLAIN_TEXT',
       Attributes: [
         {
           Key: '_data_source_id',

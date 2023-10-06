@@ -43,7 +43,7 @@ export class CustomDataSource extends Construct {
         environment: {
           INDEX_ID: props.index.ref,
           DATA_SOURCE_ID: cdk.Token.asString(
-            customDataSource.ref,
+            customDataSource.getAtt('Id'),
           ),
         },
       }
@@ -69,7 +69,7 @@ export class CustomDataSource extends Construct {
           `${cdk.Token.asString(
 props.index.getAtt('Arn')
 )}/data-source/${cdk.Token.asString(
-customDataSource.ref
+customDataSource.getAtt('Id')
 )}`,
         ],
         actions: [
