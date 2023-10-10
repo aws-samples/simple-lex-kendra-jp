@@ -16,16 +16,14 @@ SimpleLexKendra 株式会社という架空の会社のイントラ検索シス�
 
 「Amazon Lex v2 プロジェクト」では、Chatbot 形式で情報システム部に問い合わせを行います。あらかじめよくある問い合わせのフローを定義しておくことで、情報システム部の負担を軽減しています。また、対応方法が不明な問い合わせ (フローとして定義されていない問い合わせ) の場合は、Amazon Kendra を実行して、社内ドキュメントを検索します。
 
-「Amazon Kendra プロジェクト」では、検索フォームから直接社内ドキュメントを検索できます。  
-「Amazon Kendra Auth プロジェクト」は、基本構成は「Amazon Kendra プロジェクト」と同様ですが、認証・認可の機能を実装しており、管理者とそれ以外のユーザで検索できるドキュメントを制御しています。  
+「Amazon Kendra プロジェクト」では、検索フォームから直接社内ドキュメントを検索できます。認証・認可の機能を実装しており、管理者とそれ以外のユーザで検索できるドキュメントを制御しています。
 
 ## Step-by-Step Guide for Deployment
 - [1. 前提条件の確認](/docs/01_PRE_REQUIREMENT.md)
 - [2. AWS CDK のセットアップ](/docs/02_SETUP_CDK.md)
 - [3. Amazon Kendra プロジェクトのデプロイ](/docs/03_DEPLOY_KENDRA.md)
 - [4. Amazon Lex v2 プロジェクトのデプロイ](/docs/04_DEPLOY_LEXV2.md)
-- [5. (任意) Amazon Kendra Auth プロジェクトのデプロイ](/docs/05_DEPLOY_KENDRA_AUTH.md)
-- [6. Tech Knowledge](/docs/06_TECH_KNOWLEDGE.md)
+- [5. Tech Knowledge](/docs/05_TECH_KNOWLEDGE.md)
 
 ## Architecture
 

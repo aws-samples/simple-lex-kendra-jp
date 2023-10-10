@@ -4,12 +4,15 @@ import { FilterType } from '../components/FilterResult';
 export const sendQuery = async (
   api: string,
   query: string,
+  token: string,
   filters?: FilterType[]
 ) => {
   const res = await fetch(api, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      // 認証用ヘッダを設定
+      Authorization: token,
     },
     body: JSON.stringify({
       query,

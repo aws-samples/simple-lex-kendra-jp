@@ -1,0 +1,128 @@
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import * as idPool from '@aws-cdk/aws-cognito-identitypool-alpha';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as waf from 'aws-cdk-lib/aws-wafv2';
+import * as agw from 'aws-cdk-lib/aws-apigateway';
+import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
+import { NodejsBuild } from 'deploy-time-build';
+
+export interface WebProps {
+  userPool: cognito.UserPool;
+  userPoolClient: cognito.UserPoolClient;
+  dataSourceBucket: s3.Bucket;
+  webAclCloudFront: waf.CfnWebACL;
+  api: agw.RestApi;
+}
+
+export class Web extends Construct {
+  public readonly identityPool: idPool.IdentityPool;
+  public readonly distribution: cloudfront.Distribution;
+
+  constructor(scope: Construct, id: string, props: WebProps) {
+    super(scope, id);
+
+    // -----
+    // Identity Pool の作成
+    // -----
+
+    // 認証済み Cognito Pool ユーザに対して権限を付与する
+    const identityPool = new idPool.IdentityPool(
+      this,
+      'IdentityPoolForKendra',
+      {
+        authenticationProviders: {
+          userPools: [
+            new idPool.UserPoolAuthenticationProvider({
+              userPool: props.userPool,
+              userPoolClient: props.userPoolClient,
+            }),
+          ],
+        },
+      }
+    );
+
+    // Authenticated User に以下の権限 (S3) を付与
+    identityPool.authenticatedRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['s3:GetObject'],
+        resources: [props.dataSourceBucket.arnForObjects('*')],
+      })
+    );
+
+    // -----
+    // Frontend のデプロイ
+    // -----
+
+    const { cloudFrontWebDistribution, s3BucketInterface } = new CloudFrontToS3(
+      this,
+      'Frontend',
+      {
+        insertHttpSecurityHeaders: false,
+        bucketProps: {
+          blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+          encryption: s3.BucketEncryption.S3_MANAGED,
+          enforceSSL: true,
+          autoDeleteObjects: true,
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
+        },
+        loggingBucketProps: {
+          objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
+          autoDeleteObjects: true,
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
+          serverAccessLogsPrefix: 'logs',
+        },
+        cloudFrontLoggingBucketProps: {
+          objectOwnership: s3.ObjectOwnership.OBJECT_WRITER,
+          autoDeleteObjects: true,
+          removalPolicy: cdk.RemovalPolicy.DESTROY,
+          serverAccessLogsPrefix: 'logs',
+        },
+        cloudFrontDistributionProps: {
+          geoRestriction: cloudfront.GeoRestriction.allowlist('JP'),
+          webAclId: props.webAclCloudFront.attrArn,
+        },
+      }
+    );
+
+    new NodejsBuild(this, 'WebKendra', {
+      assets: [
+        {
+          path: '../',
+          exclude: [
+            '.git',
+            'node_modules',
+            'cdk',
+            'docs',
+            'imgs',
+            'web-lexv2',
+            'web-kendra/build',
+            'web-kendra/node_modules',
+          ],
+        },
+      ],
+      destinationBucket: s3BucketInterface,
+      distribution: cloudFrontWebDistribution,
+      outputSourceDirectory: 'web-kendra/build',
+      buildCommands: [
+        'npm install -w web-kendra',
+        'npm run build -w web-kendra',
+      ],
+      buildEnvironment: {
+        REACT_APP_API_ENDPOINT: `${props.api.url}kendra`,
+        REACT_APP_IDENTITY_POOL_ID: identityPool.identityPoolId,
+        REACT_APP_REGION: cdk.Stack.of(this).region,
+        // Cognito の環境情報を設定
+        REACT_APP_USER_POOL_ID: props.userPool.userPoolId,
+        REACT_APP_USER_POOL_CLIENT_ID: props.userPoolClient.userPoolClientId,
+      },
+    });
+
+    this.identityPool = identityPool;
+    this.distribution = cloudFrontWebDistribution;
+  }
+}

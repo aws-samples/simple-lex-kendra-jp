@@ -13,11 +13,13 @@ npm exec -w cdk -- cdk deploy SimpleKendraStack
 以下のような出力であれば成功です。`SimpleKendraStack.KendraSampleFrontend` にサンプルの URL が表示されていますが、アクセスする前に、以下のデータ取り込みを実施してください。
 
 ```
+SimpleKendraStack.ApiKendraApiEndpoint5BE9D63F = ...
+SimpleKendraStack.CognitoUserPoolClientId = ...
+SimpleKendraStack.CognitoUserPoolId = ...
 SimpleKendraStack.DataSourceBucketName = ...
-SimpleKendraStack.ExportsOutputFnGetAttKendraIndexArn7ABEB122 = ...
-SimpleKendraStack.ExportsOutputRefKendraIndex7C32BDCD = ...
+SimpleKendraStack.ExportsOutputFnGetAttKendraIndex8794BFDFArnAB03A93F = ...
+SimpleKendraStack.ExportsOutputRefKendraIndex8794BFDF99DDBD96 = ...
 SimpleKendraStack.IdentityPoolId = ...
-SimpleKendraStack.KendraApiEndpointF276F28B = ...
 SimpleKendraStack.KendraIndexId = ...
 SimpleKendraStack.KendraSampleFrontend = ...
 ```
@@ -28,7 +30,50 @@ SimpleKendraStack.KendraSampleFrontend = ...
 
 [Amazon Kendra](https://console.aws.amazon.com/kendra/home) を開き、simple-index-by-cdk を選択して、左カラムの Data sources から s3-data-source をクリックします。右上の Sync now をクリックして、同期を実施してください。
 
-それでは、サンプルのプロジェクトにアクセスします。デプロイ完了時 AWS CDK が出力した `SimpleKendraStack.KendraSampleFrontend` の URL にアクセスしてください。例えば、「パスワードの更新」と検索すると、必要なツール名が表示されると思います。
+## ユーザ登録
+
+本プロジェクトは認証を行う必要がありますので、ユーザ登録を行います。
+管理者と一般ユーザで Kendra の検索結果が異なることを確認したいため、管理者と一般ユーザそれぞれのユーザ登録を行います。
+
+[Amazon Cognito](https://console.aws.amazon.com/cognito/home) を開き、`KendraUserPool` から始まるユーザプールを選択してユーザプールの画面を開き、「ユーザ」の欄にある「ユーザを作成」ボタンを押してください。
+「ユーザを作成」画面が開きますので、以下の条件で管理者と一般ユーザの**合計 2 ユーザ**を登録してください。
+
+- 招待メッセージ：「招待を送信しない」を選択
+- E メールアドレス：任意のメールアドレスを入力（管理者と一般ユーザで異なるメールアドレスを入力してください。存在しないアドレスで良いです。）
+- E メールアドレスを検証済みとしてマークする：チェックする
+- 電話番号：入力しない
+- 仮パスワード：「パスワードの設定」を選択
+- パスワード：任意のパスワードを入力（初回サインインで利用します）
+
+ユーザ登録が完了したら、ユーザグループの登録を行いユーザを管理者権限にします。
+後の手順で一般ユーザの動作確認を行うので、当手順は 1 ユーザ分だけ実施してください。
+
+管理者にしたいユーザのユーザ名を選択してユーザ情報の編集画面を開き、「グループメンバーシップ」の欄にある「ユーザーをグループに追加」ボタンを押してください。
+「ユーザーをグループに追加」画面が開くと、グループ欄に「 KendraAdmin 」が表示されていると思いますので、そちらを選択して「追加」をしてください。
+「ユーザグループメンバーシップ」欄に、「 KendraAdmin 」が表示されていれば、管理者となります。
+
+**補足**
+
+上記では、AWS マネージメントコンソールから登録する手順をご紹介しましたが、本プロジェクトはフロントエンドの認証画面を [Amplify UI の Authenticator](https://ui.docs.amplify.aws/react/connected-components/authenticator) で実装しているので、フロントエンドの認証画面からユーザ登録を行うこともできます。
+認証画面の「アカウントを作る」から、画面に表示される手順に沿って入力することで、ユーザを登録できます。
+ただし、こちらの機能を利用する際は以下についてご注意ください。
+
+- アカウントを登録する過程で、入力したメールアドレスに送信される確認コードを入力する手順がありますので、実際に受信できるメールアドレスしか利用できません。
+- ユーザグループに所属しない状態で作成されるので、「一般ユーザ」となります。管理者にしたい場合は、上記の手順通り AWS マネージメントコンソールからユーザグループの登録を行なってください。
+
+## 動作確認
+
+それでは、サンプルのプロジェクトにアクセスします。デプロイ完了時 AWS CDK が出力した `SimpleKendraStack.KendraSampleFrontend` の URL にアクセスしてください。
+
+ログイン画面が表示されますので、まずは管理者でサインインしてください。
+「管理者」と入力して検索を実行してみてください。
+すると、「管理者限定」というドキュメントが検索できると思います。
+
+続いて、一般ユーザで確認を行います。右上のメニューからサインアウトして、一般ユーザでサインインしてください。
+同様に「管理者」と入力して検索を実行してみてください。
+一般ユーザの場合は、「管理者限定」というドキュメントが表示されていないと思います。
+
+上記の文言以外でも検索することが可能ですので、自由に検索をしてみてください。
 
 > - 検索対象は [`/cdk/docs`](/cdk/docs) のテキストファイルです。そちらの内容をクエリのヒントにしてください。
 
@@ -58,26 +103,18 @@ Amazon Kendra は多くの Native connectors を提供しています。([参考
 
 このように、データさえフェッチできれば、基本的にはどのようなドキュメントでも Kendra に追加できます。この Lambda 関数を定期実行にすれば、自動で Indexing を実行することも可能です。また、今回はデータ形式として PLAIN_TEXT を指定していますが、HTML や PPT、PDF など多くのフォーマットにも対応しています。([参考: Types of documents](https://docs.aws.amazon.com/kendra/latest/dg/index-document-types.html))
 
-## Web Crawler の追加 (オプショナル 4)
-
-Web ページをクローリングして、コンテンツを Amazon Kendra の Index に登録します。例として [AWS の Wikipedia](https://ja.wikipedia.org/wiki/Amazon_Web_Services) をクロールします。
-
-なお、Web Crawler についてはデフォルトでデプロイされず、コメントアウトしてあります。[`/cdk/lib/simple-kendra-stack.ts`](/cdk/lib/simple-kendra-stack.ts) を開き、`// Web Crawler の実装例` 以下でコメントアウトされているコードをアンコメントしてください。その後、デプロイコマンドを実行して Amazon Kendra の画面を開き、Data Source に webcrawler-data-source が追加されたことを確認します。最後に右上の Sync now をクリックしてデータを取り込みます。
-
-それらが完了したら、「AWS とは」などで検索を行ってみてください。
-
-## Featured Results を試してみる (オプショナル 5)
+## Featured Results を試してみる (オプショナル 4)
 
 [Featured Results (注目の検索結果)](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/featured-results.html) とは、特定のクエリを実行したときに、特定のドキュメントを検索結果に表示する機能のことです。利用者に注目して欲しいドキュメントをこちらに登録することで、優先して検索結果を表示したり、強調して検索結果を表示することが可能になります。Featured Results として検索されたドキュメントは、通常の検索結果 (ResultItems) には含まれませんので、ご注意ください（重複して検索されません）。
 
 こちらのサンプルコードでは、Featured Results は以下のように表示されます。
-![picture 0](../img/../imgs/FeaturedResults.png)  
+![picture 0](../img/../imgs/FeaturedResults.png)
 
 Featured Results は、Amazon Kendra の画面を開き、画面左側の `Featured results` メニューを選択することで登録できます。`Create set` ボタンを押下し、登録画面に進んでください。`Find items to feature` 画面で、Featured Results として表示したいドキュメントを選択してください（AccessControlList を含むメタデータ設定もそのまま引き継がれます）。`Add queries` 画面で登録したクエリが実行されると、Featured Results としてドキュメントが検索されます。
 
 Featured Results は即時反映されるので、ご自身で登録したクエリを実行して確認してみてください。
 
-## カスタム属性を利用したフィルタリングを試してみる (オプショナル 6)
+## カスタム属性を利用したフィルタリングを試してみる (オプショナル 5)
 
 Kendra には[カスタム属性を設定する機能](https://docs.aws.amazon.com/ja_jp/kendra/latest/dg/custom-attributes.html)があり、検索をより便利にできます。
 
@@ -99,9 +136,9 @@ Kendra には[カスタム属性を設定する機能](https://docs.aws.amazon.c
 
 当サンプルコードでは、カスタム属性の Facetable を true にすると、以下のように画面上でフィルタリングを行うことができます。
 
-![picture 1](../imgs/facet.png)  
+![picture 1](../imgs/facet.png)
 
-## 手元で Frontend を動かす (オプショナル 7)
+## 手元で Frontend を動かす (オプショナル 6)
 
 手元の PC で Frontend アプリを実行します。Backend をデプロイしておく必要があるため、CDK のデプロイは完了していることを想定しています。以下のコマンドを実行してください。
 
@@ -109,12 +146,16 @@ Kendra には[カスタム属性を設定する機能](https://docs.aws.amazon.c
 export REACT_APP_API_ENDPOINT=<Kendra API Endpoint>
 export REACT_APP_IDENTITY_POOL_ID=<Identity Pool ID>
 export REACT_APP_REGION=<Region>
+export REACT_APP_USER_POOL_ID=<Cognito User Pool ID>
+export REACT_APP_USER_POOL_CLIENT_ID=<Cognito User Pool Client ID>
 ```
 
 - 上記 `<...>` の値は `cdk deploy SimpleKendraStack` の出力を確認して適切な値に書き換えてください。
   - `<Kendra API Endpoint>` は `SimpleKendraStack.KendraApiEndpointxxxx = ...` の形式で出力された Endpoint に `kendra` の path を追加したものを設定。最終的に https://xxxxxxxxxx.execute-api.region.amazonaws.com/prod/kendra のような値になる。
   - `<Identity Pool ID>` は `SimpleKendraStack.IdentityPoolId = ...` の値
   - `<Region>` は CDK でデプロイしたリージョン (例: ap-northeast-1)
+  - `<Cognito User Pool ID>` は `SimpleKendraStack.CognitoUserPoolId = ...` の値
+  - `<Cognito User Pool Client ID>` は `SimpleKendraStack.CognitoUserPoolClientId = ...` の値
 - `cdk deploy SimpleKendraStack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleKendraStack から Outputs タブで確認してください。
 
 続いて、3000 番ポートで待ち受けを開始します。
