@@ -17,20 +17,7 @@ export class CustomDataSource extends Construct {
       indexId: props.index.ref,
       type: 'CUSTOM',
       name: 'custom-data-source',
-      // ドキュメントを日本語して読み込むための設定
-      // TODO: LanguageCode が利用可能になったらそちらに切り替える
-      customDocumentEnrichmentConfiguration: {
-        inlineConfigurations: [
-          {
-            target: {
-              targetDocumentAttributeKey: '_language_code',
-              targetDocumentAttributeValue: {
-                stringValue: 'ja',
-              },
-            },
-          },
-        ],
-      },
+      languageCode: 'ja',
     });
 
     const syncCustomDataSourceFunc = new lambda.NodejsFunction(

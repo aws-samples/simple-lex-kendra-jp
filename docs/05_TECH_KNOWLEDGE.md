@@ -27,35 +27,35 @@ Amazon Lex v2 では `AMAZON.KendraSearchIntent` を利用することで、Amaz
 
 ### AWS CDK (AWS CloudFormation) でデフォルト言語を指定できない件について
 
-現状は CloudFormation で DataSource と FAQ を作成する際に、デフォルトの言語を指定することができません。日本人のユーザーにとっては、ほとんどの場合、言語を日本語に指定する必要があると思うので、このままではとても不便です。
+現状 (2023/10) は CloudFormation で FAQ を作成する際に、デフォルトの言語を指定することができません。日本人のユーザーにとっては、ほとんどの場合、言語を日本語に指定する必要があると思うので、このままではとても不便です。
 
-- [AWS::Kendra::DataSource](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kendra-datasource.html)
 - [AWS::Kendra::Faq](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kendra-faq.html)
 
 そこで、simple-lex-kendra-jp では、Custom Resource を作成しています。([`/cdk/custom-resources`](/cdk/custom-resources))
 
-### ドキュメントのアクセスコントロールについて  
-現状 (2023/05) 、アクセスコントロール機能は Amazon S3 の Data source connection に限り行うことができます。  
+### ドキュメントのアクセスコントロールについて
+
+現状 (2023/05) 、アクセスコントロール機能は Amazon S3 の Data source connection に限り行うことができます。
 ※ Amazon S3 以外でアクセスコントロールを実現したい場合は、Index を分けて IAM を使って制御する実装が一つの案として考えられます。
 
-Amazon S3 ドキュメントのアクセスコントロールは、「メタデータ使う方法」と「設定ファイルを使う方法」の2つがあります。  
+Amazon S3 ドキュメントのアクセスコントロールは、「メタデータ使う方法」と「設定ファイルを使う方法」の2つがあります。
 * メタデータを使う方法
   * Amazon S3 ドキュメントにはメタデータを設定することができますが、そのメタデータの一つとして `AccessControlList` があります。
   * `AccessControlList` にアクセス条件を設定することで、ファイルごとにアクセスコントロールを行うことができます。
   * 参考：[Amazon S3 document metadata](https://docs.aws.amazon.com/kendra/latest/dg/s3-metadata.html)
 * 設定ファイルを使う方法
-  * アクセスコントロール設定用の JSON ファイルを定義することで、一元的にアクセスコントロールを設定することが可能です。  
-  * フォルダ単位での指定も可能ですので、大量のドキュメントに対してアクセスコントロールを行う場合は、こちらの方法が管理しやすいと思います。  
+  * アクセスコントロール設定用の JSON ファイルを定義することで、一元的にアクセスコントロールを設定することが可能です。
+  * フォルダ単位での指定も可能ですので、大量のドキュメントに対してアクセスコントロールを行う場合は、こちらの方法が管理しやすいと思います。
   * `keyPrefix` は `s3://` から始まるフルパスを指定する必要があるのでご注意ください。
   * 参考：[Access control for Amazon S3 data sources](https://docs.aws.amazon.com/kendra/latest/dg/s3-acl.html)
 
-アクセスコントロールはユーザ単位とグループ単位で行うことができます。  
-ユーザとグループの属性は Index の TokenConfiguration で変更することが可能です。  
-当サンプルでは、ユーザは `cognito:username` 、グループは `cognito:groups` を指定しています。  
+アクセスコントロールはユーザ単位とグループ単位で行うことができます。
+ユーザとグループの属性は Index の TokenConfiguration で変更することが可能です。
+当サンプルでは、ユーザは `cognito:username` 、グループは `cognito:groups` を指定しています。
 
-Amazon Kendra の Query を実行する際に、Amazon Cognito が発行した JWT トークンを設定することにより、アクセスコントロールが実行されます。  
-※ Cognito のアクセストークンと ID トークンのどちらも利用可能ですが、認証されたユーザの属性（アイデンティティ）を利用することが主な目的ですので、ID トークンを利用する方が適切です。  
-JWT トークンは、`--user-context` の `Token` に設定をしてください。  
+Amazon Kendra の Query を実行する際に、Amazon Cognito が発行した JWT トークンを設定することにより、アクセスコントロールが実行されます。
+※ Cognito のアクセストークンと ID トークンのどちらも利用可能ですが、認証されたユーザの属性（アイデンティティ）を利用することが主な目的ですので、ID トークンを利用する方が適切です。
+JWT トークンは、`--user-context` の `Token` に設定をしてください。
 参考：[AWS CLI Referense kendra qurey](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/kendra/query.html)
 
 > [アクセスコントロールについて詳細に解説したブログ](https://prototyping-blog.com/blog/kendra-s3-access-control)

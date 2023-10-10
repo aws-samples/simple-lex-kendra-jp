@@ -84,6 +84,7 @@ export class S3DataSource extends Construct {
       type: 'S3',
       name: 's3-data-source',
       roleArn: s3DataSourceRole.roleArn,
+      languageCode: 'ja',
       dataSourceConfiguration: {
         s3Configuration: {
           bucketName: dataSourceBucket.bucketName,
@@ -97,20 +98,6 @@ export class S3DataSource extends Construct {
             s3Prefix: 'metadata',
           },
         },
-      },
-      // ドキュメントを日本語して読み込むための設定
-      // TODO: LanguageCode が利用可能になったらそちらに切り替える
-      customDocumentEnrichmentConfiguration: {
-        inlineConfigurations: [
-          {
-            target: {
-              targetDocumentAttributeKey: '_language_code',
-              targetDocumentAttributeValue: {
-                stringValue: 'ja',
-              },
-            },
-          },
-        ],
       },
     });
 
