@@ -78,4 +78,4 @@ npm exec -w cdk -- cdk destroy SimpleLexV2Stack
 
 ## Next Step
 
-[Tech Knowledge](/docs/06_TECH_KNOWLEDGE.md)
+[Tech Knowledge](/docs/05_TECH_KNOWLEDGE.md)
