@@ -21,8 +21,6 @@ const demoDocuments = [
 interface SyncCustomDataSourceProps {}
 
 exports.handler = async (_props: SyncCustomDataSourceProps): Promise<void> => {
-  console.log(INDEX_ID, DATA_SOURCE_ID);
-
   const kendra = new KendraClient({});
   const startDataSourceSyncJobCommand = new StartDataSourceSyncJobCommand({
     Id: DATA_SOURCE_ID,

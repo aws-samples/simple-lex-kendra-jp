@@ -63,7 +63,7 @@ SimpleKendraStack.KendraSampleFrontend = ...
 
 ## 動作確認
 
-それでは、サンプルのプロジェクトにアクセスします。デプロイ完了時 AWS CDK が出力した `SimpleKendraAuthStack.KendraSampleFrontend` の URL にアクセスしてください。
+それでは、サンプルのプロジェクトにアクセスします。デプロイ完了時 AWS CDK が出力した `SimpleKendraStack.KendraSampleFrontend` の URL にアクセスしてください。
 
 ログイン画面が表示されますので、まずは管理者でサインインしてください。
 「管理者」と入力して検索を実行してみてください。
@@ -150,13 +150,13 @@ export REACT_APP_USER_POOL_ID=<Cognito User Pool ID>
 export REACT_APP_USER_POOL_CLIENT_ID=<Cognito User Pool Client ID>
 ```
 
-- 上記 `<...>` の値は `cdk deploy SimpleKendraAuthStack` の出力を確認して適切な値に書き換えてください。
-  - `<Kendra API Endpoint>` は `SimpleKendraAuthStack.KendraApiEndpointxxxx = ...` の形式で出力された Endpoint に `kendra` の path を追加したものを設定。最終的に https://xxxxxxxxxx.execute-api.region.amazonaws.com/prod/kendra のような値になる。
-  - `<Identity Pool ID>` は `SimpleKendraAuthStack.IdentityPoolId = ...` の値
+- 上記 `<...>` の値は `cdk deploy SimpleKendraStack` の出力を確認して適切な値に書き換えてください。
+  - `<Kendra API Endpoint>` は `SimpleKendraStack.KendraApiEndpointxxxx = ...` の形式で出力された Endpoint に `kendra` の path を追加したものを設定。最終的に https://xxxxxxxxxx.execute-api.region.amazonaws.com/prod/kendra のような値になる。
+  - `<Identity Pool ID>` は `SimpleKendraStack.IdentityPoolId = ...` の値
   - `<Region>` は CDK でデプロイしたリージョン (例: ap-northeast-1)
-  - `<Cognito User Pool ID>` は `SimpleKendraAuthStack.CognitoUserPoolId = ...` の値
-  - `<Cognito User Pool Client ID>` は `SimpleKendraAuthStack.CognitoUserPoolClientId = ...` の値
-- `cdk deploy SimpleKendraAuthStack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleKendraAuthStack から Outputs タブで確認してください。
+  - `<Cognito User Pool ID>` は `SimpleKendraStack.CognitoUserPoolId = ...` の値
+  - `<Cognito User Pool Client ID>` は `SimpleKendraStack.CognitoUserPoolClientId = ...` の値
+- `cdk deploy SimpleKendraStack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleKendraStack から Outputs タブで確認してください。
 
 続いて、3000 番ポートで待ち受けを開始します。
 
