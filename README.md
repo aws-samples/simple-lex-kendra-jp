@@ -7,8 +7,11 @@
 **Amazon Lex v2 のサンプルプロジェクト**
 ![lexv2](/imgs/lexv2.png)
 
-**Amazon Kendra のサンプルプロジェクト**
+**Amazon Kendra のサンプルプロジェクト [検索画面]**
 ![kendra](/imgs/kendra.png)
+
+**Amazon Kendra のサンプルプロジェクト [RAG チャット画面]**
+![kendra rag](/imgs/kendra-rag.png)
 
 ## シナリオ
 
@@ -18,7 +21,10 @@ SimpleLexKendra 株式会社という架空の会社のイントラ検索シス�
 
 「Amazon Kendra プロジェクト」では、検索フォームから直接社内ドキュメントを検索できます。認証・認可の機能を実装しており、管理者とそれ以外のユーザで検索できるドキュメントを制御しています。
 
+「Amazon Kendra のプロジェクト」では AWS の生成系 AI サービスである Amazon Bedrock と連携することにより、チャット形式でドキュメントを検索することも可能です。 Retrieval Augmented Generation (以降、RAG) という手法を使うことにより、Amazon Kendra で検索したドキュメントを元に、生成系 AI が回答を作成してくれます。詳細は、[こちらのページ](./docs/06_GEN_AI_KENDRA.md)をご覧ください。
+
 ## Step-by-Step Guide for Deployment
+
 - [1. 前提条件の確認](/docs/01_PRE_REQUIREMENT.md)
 - [2. AWS CDK のセットアップ](/docs/02_SETUP_CDK.md)
 - [3. Amazon Kendra プロジェクトのデプロイ](/docs/03_DEPLOY_KENDRA.md)
@@ -27,7 +33,7 @@ SimpleLexKendra 株式会社という架空の会社のイントラ検索シス�
 
 ## Architecture
 
-![](/imgs/arch.drawio.png)
+![architecture](/imgs/arch.drawio.png)
 
 ## Security
 

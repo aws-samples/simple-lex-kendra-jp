@@ -6,3 +6,4 @@ export * from './kendra-index';
 export * from './s3-data-source';
 export * from './custom-data-source';
 export * from './faq';
+export * from './identity';

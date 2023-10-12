@@ -41,24 +41,20 @@ const app = new cdk.App();
 Aspects.of(app).add(new AwsSolutionsChecks());
 
 (async () => {
-  const webAclStack = new WebAclStack(app, 'webAcl', {
+  const webAclStack = new WebAclStack(app, 'SimpleKendraWebAcl', {
     crossRegionReferences: true,
     env: {
       region: 'us-east-1',
     },
   });
 
-  const kendraStack = new SimpleKendraStack(
-    app,
-    'SimpleKendraStack',
-    {
-      webAclCloudFront: webAclStack.webAcl,
-      crossRegionReferences: true,
-      env: {
-        region: 'ap-northeast-1',
-      },
-    }
-  );
+  const kendraStack = new SimpleKendraStack(app, 'SimpleKendraStack', {
+    webAclCloudFront: webAclStack.webAcl,
+    crossRegionReferences: true,
+    env: {
+      region: 'ap-northeast-1',
+    },
+  });
 
   kendraStack.addDependency(webAclStack);
 

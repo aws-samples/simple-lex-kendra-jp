@@ -49,8 +49,8 @@ SimpleKendraStack.KendraSampleFrontend = ...
 後の手順で一般ユーザの動作確認を行うので、当手順は 1 ユーザ分だけ実施してください。
 
 管理者にしたいユーザのユーザ名を選択してユーザ情報の編集画面を開き、「グループメンバーシップ」の欄にある「ユーザーをグループに追加」ボタンを押してください。
-「ユーザーをグループに追加」画面が開くと、グループ欄に「 KendraAdmin 」が表示されていると思いますので、そちらを選択して「追加」をしてください。
-「ユーザグループメンバーシップ」欄に、「 KendraAdmin 」が表示されていれば、管理者となります。
+「ユーザーをグループに追加」画面が開くと、グループ欄に「KendraAdmin」が表示されていると思いますので、そちらを選択して「追加」をしてください。
+「ユーザグループメンバーシップ」欄に、「KendraAdmin」が表示されていれば、管理者となります。
 
 **補足**
 
@@ -60,6 +60,12 @@ SimpleKendraStack.KendraSampleFrontend = ...
 
 - アカウントを登録する過程で、入力したメールアドレスに送信される確認コードを入力する手順がありますので、実際に受信できるメールアドレスしか利用できません。
 - ユーザグループに所属しない状態で作成されるので、「一般ユーザ」となります。管理者にしたい場合は、上記の手順通り AWS マネージメントコンソールからユーザグループの登録を行なってください。
+
+## Amazon Bedrock の事前設定
+
+**このリポジトリでは、デフォルトでバージニア北部 (us-east-1) リージョンの Anthropic Claude モデルを利用する設定になっています。[Model access 画面](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) を開き、「Edit」 → 「Anthropic Claude にチェック」 → 「Save changes」 と操作していただいて、バージニア北部リージョンにて Amazon Bedrock (基盤モデル: Claude) を利用できる状態にしてください。**
+
+現在 (2023/10/11) は **東京リージョン (ap-northeast-1) で、Claude の基盤モデルを利用することができません。**
 
 ## 動作確認
 
@@ -148,6 +154,7 @@ export REACT_APP_IDENTITY_POOL_ID=<Identity Pool ID>
 export REACT_APP_REGION=<Region>
 export REACT_APP_USER_POOL_ID=<Cognito User Pool ID>
 export REACT_APP_USER_POOL_CLIENT_ID=<Cognito User Pool Client ID>
+export REACT_APP_PREDICT_STREAM_FUNCTION_ARN=<Predict Stream Function ARN>
 ```
 
 - 上記 `<...>` の値は `cdk deploy SimpleKendraStack` の出力を確認して適切な値に書き換えてください。
@@ -156,6 +163,7 @@ export REACT_APP_USER_POOL_CLIENT_ID=<Cognito User Pool Client ID>
   - `<Region>` は CDK でデプロイしたリージョン (例: ap-northeast-1)
   - `<Cognito User Pool ID>` は `SimpleKendraStack.CognitoUserPoolId = ...` の値
   - `<Cognito User Pool Client ID>` は `SimpleKendraStack.CognitoUserPoolClientId = ...` の値
+  -   - `<Predict Stream Function ARN>` は `SimpleKendraStack.PredictStreamFunctionArn = ...` の値 (Streaming Response を行う Lambda 関数の ARN)
 - `cdk deploy SimpleKendraStack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleKendraStack から Outputs タブで確認してください。
 
 続いて、3000 番ポートで待ち受けを開始します。

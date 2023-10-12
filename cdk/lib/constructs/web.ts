@@ -1,58 +1,29 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as idPool from '@aws-cdk/aws-cognito-identitypool-alpha';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as waf from 'aws-cdk-lib/aws-wafv2';
 import * as agw from 'aws-cdk-lib/aws-apigateway';
+import * as idPool from '@aws-cdk/aws-cognito-identitypool-alpha';
+import * as lambda from 'aws-cdk-lib/aws-lambda-nodejs';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3';
 import { NodejsBuild } from 'deploy-time-build';
 
 export interface WebProps {
   userPool: cognito.UserPool;
   userPoolClient: cognito.UserPoolClient;
-  dataSourceBucket: s3.Bucket;
+  identityPool: idPool.IdentityPool;
   webAclCloudFront: waf.CfnWebACL;
   api: agw.RestApi;
+  predictStreamFunction: lambda.NodejsFunction;
 }
 
 export class Web extends Construct {
-  public readonly identityPool: idPool.IdentityPool;
   public readonly distribution: cloudfront.Distribution;
 
   constructor(scope: Construct, id: string, props: WebProps) {
     super(scope, id);
-
-    // -----
-    // Identity Pool の作成
-    // -----
-
-    // 認証済み Cognito Pool ユーザに対して権限を付与する
-    const identityPool = new idPool.IdentityPool(
-      this,
-      'IdentityPoolForKendra',
-      {
-        authenticationProviders: {
-          userPools: [
-            new idPool.UserPoolAuthenticationProvider({
-              userPool: props.userPool,
-              userPoolClient: props.userPoolClient,
-            }),
-          ],
-        },
-      }
-    );
-
-    // Authenticated User に以下の権限 (S3) を付与
-    identityPool.authenticatedRole.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['s3:GetObject'],
-        resources: [props.dataSourceBucket.arnForObjects('*')],
-      })
-    );
 
     // -----
     // Frontend のデプロイ
@@ -114,15 +85,17 @@ export class Web extends Construct {
       ],
       buildEnvironment: {
         REACT_APP_API_ENDPOINT: `${props.api.url}kendra`,
-        REACT_APP_IDENTITY_POOL_ID: identityPool.identityPoolId,
+        REACT_APP_IDENTITY_POOL_ID: props.identityPool.identityPoolId,
         REACT_APP_REGION: cdk.Stack.of(this).region,
         // Cognito の環境情報を設定
         REACT_APP_USER_POOL_ID: props.userPool.userPoolId,
         REACT_APP_USER_POOL_CLIENT_ID: props.userPoolClient.userPoolClientId,
+        // StreamingResponse の Lambda 関数
+        REACT_APP_PREDICT_STREAM_FUNCTION_ARN:
+          props.predictStreamFunction.functionArn,
       },
     });
 
-    this.identityPool = identityPool;
     this.distribution = cloudFrontWebDistribution;
   }
 }

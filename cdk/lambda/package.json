@@ -2,7 +2,8 @@
   "name": "@aws-samples/lambda",
   "private": true,
   "dependencies": {
-    "@aws-sdk/client-kendra": "^3.363.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.422.1",
+    "@aws-sdk/client-kendra": "^3.421.0",
     "@types/aws-lambda": "^8.10.109"
   }
 }
