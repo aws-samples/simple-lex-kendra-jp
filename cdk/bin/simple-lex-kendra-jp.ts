@@ -48,17 +48,13 @@ Aspects.of(app).add(new AwsSolutionsChecks());
     },
   });
 
-  const kendraStack = new SimpleKendraStack(
-    app,
-    'SimpleKendraStack',
-    {
-      webAclCloudFront: webAclStack.webAcl,
-      crossRegionReferences: true,
-      env: {
-        region: 'ap-northeast-1',
-      },
-    }
-  );
+  const kendraStack = new SimpleKendraStack(app, 'SimpleKendraStack', {
+    webAclCloudFront: webAclStack.webAcl,
+    crossRegionReferences: true,
+    env: {
+      region: 'ap-northeast-1',
+    },
+  });
 
   kendraStack.addDependency(webAclStack);
 

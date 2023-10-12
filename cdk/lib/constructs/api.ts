@@ -7,16 +7,19 @@ import * as waf from 'aws-cdk-lib/aws-wafv2';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as lambda from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as kendra from 'aws-cdk-lib/aws-kendra';
+import * as idPool from '@aws-cdk/aws-cognito-identitypool-alpha';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { CommonWebAcl } from './common-web-acl';
 
 export interface ApiProps {
   userPool: cognito.UserPool;
+  identityPool: idPool.IdentityPool;
   index: kendra.CfnIndex;
 }
 
 export class Api extends Construct {
   public readonly api: agw.RestApi;
+  public readonly predictStreamFunction: lambda.NodejsFunction;
 
   constructor(scope: Construct, id: string, props: ApiProps) {
     super(scope, id);
@@ -43,6 +46,82 @@ export class Api extends Construct {
         resources: [cdk.Token.asString(props.index.getAtt('Arn'))],
         actions: ['kendra:Query'],
       })
+    );
+
+    const retrieveFunc = new lambda.NodejsFunction(this, 'RetrieveFunc', {
+      runtime: Runtime.NODEJS_18_X,
+      entry: './lambda/retrieve.ts',
+      timeout: cdk.Duration.minutes(3),
+      environment: {
+        INDEX_ID: props.index.ref,
+      },
+      bundling: {
+        // Retrieve に対応している aws-sdk を利用するため、aws-sdk をバンドルする形でビルドする
+        // デフォルトだと aws-sdk が ExternalModules として指定されバンドルされず、Lambda デフォルトバージョンの aws-sdk が利用されるようになる
+        // https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/lambda-runtimes.html
+        externalModules: [],
+      },
+    });
+
+    // Lambda から Kendra を呼び出せるように権限を付与
+    retrieveFunc.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: [cdk.Token.asString(props.index.getAtt('Arn'))],
+        actions: ['kendra:Retrieve'],
+      })
+    );
+
+    const predictStreamFunction = new lambda.NodejsFunction(
+      this,
+      'PredictStream',
+      {
+        runtime: Runtime.NODEJS_18_X,
+        entry: './lambda/predict-stream.ts',
+        timeout: cdk.Duration.minutes(3),
+        bundling: {
+          // Bedrock に対応している aws-sdk を利用するため、aws-sdk をバンドルする形でビルドする
+          // デフォルトだと aws-sdk が ExternalModules として指定されバンドルされず、Lambda デフォルトバージョンの aws-sdk が利用されるようになる
+          // https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/lambda-runtimes.html
+          externalModules: [],
+        },
+      }
+    );
+    predictStreamFunction.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: ['*'],
+        actions: ['bedrock:*', 'logs:*'],
+      })
+    );
+    predictStreamFunction.role?.grantAssumeRole(
+      new iam.ServicePrincipal('bedrock.amazonaws.com')
+    );
+
+    // フロントエンドから SDK で直接実行するので IdentityPool で権限制御
+    predictStreamFunction.grantInvoke(props.identityPool.authenticatedRole);
+
+    const predictFunc = new lambda.NodejsFunction(this, 'PredictFunc', {
+      runtime: Runtime.NODEJS_18_X,
+      entry: './lambda/predict.ts',
+      timeout: cdk.Duration.minutes(3),
+      bundling: {
+        // Bedrock に対応している aws-sdk を利用するため、aws-sdk をバンドルする形でビルドする
+        // デフォルトだと aws-sdk が ExternalModules として指定されバンドルされず、Lambda デフォルトバージョンの aws-sdk が利用されるようになる
+        // https://docs.aws.amazon.com/ja_jp/lambda/latest/dg/lambda-runtimes.html
+        externalModules: [],
+      },
+    });
+
+    predictFunc.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: ['*'],
+        actions: ['bedrock:*', 'logs:*'],
+      })
+    );
+    predictFunc.role?.grantAssumeRole(
+      new iam.ServicePrincipal('bedrock.amazonaws.com')
     );
 
     const apiLogGroup = new logs.LogGroup(this, 'KendraApiLog');
@@ -86,6 +165,18 @@ export class Api extends Construct {
       authorizer,
     });
 
+    const ragEndpoint = kendraEndpoint.addResource('retrieve');
+    ragEndpoint.addMethod('POST', new agw.LambdaIntegration(retrieveFunc), {
+      authorizationType: agw.AuthorizationType.COGNITO,
+      authorizer,
+    });
+
+    const predictEndpoint = kendraEndpoint.addResource('predict');
+    predictEndpoint.addMethod('POST', new agw.LambdaIntegration(predictFunc), {
+      authorizationType: agw.AuthorizationType.COGNITO,
+      authorizer,
+    });
+
     const apiWebAcl = new CommonWebAcl(this, 'KendraApiWebAcl', {
       scope: 'REGIONAL',
     });
@@ -101,5 +192,6 @@ export class Api extends Construct {
     });
 
     this.api = api;
+    this.predictStreamFunction = predictStreamFunction;
   }
 }

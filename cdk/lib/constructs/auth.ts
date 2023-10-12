@@ -38,14 +38,10 @@ export class Auth extends Construct {
     });
 
     // ユーザグループの作成
-    new cognito.CfnUserPoolGroup(
-      this,
-      'UserGroupAdmin',
-      {
-        userPoolId: userPool.userPoolId,
-        groupName: 'KendraAdmin',
-      }
-    );
+    new cognito.CfnUserPoolGroup(this, 'UserGroupAdmin', {
+      userPoolId: userPool.userPoolId,
+      groupName: 'KendraAdmin',
+    });
 
     // Cognito UserPool を利用する Client を作成（フロントエンド用）
     const userPoolClient = userPool.addClient('UserPoolClient', {

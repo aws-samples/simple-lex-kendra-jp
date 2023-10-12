@@ -29,9 +29,7 @@ function App() {
           Header: () => {
             return (
               <div className="flex justify-center">
-                <h1 className="text-4xl my-6 text-gray-600">
-                  Kendra サンプル
-                </h1>
+                <h1 className="text-4xl my-6 text-gray-600">Kendra サンプル</h1>
               </div>
             );
           },
@@ -39,8 +37,15 @@ function App() {
       >
         {({ signOut }) => (
           <>
-            <Menu onSignOut={signOut ?? (() => {})} />
-            <ItemList />
+            <div className="overflow-hidden">
+              <div
+                id="main"
+                className=" relative h-screen w-screen overflow-hidden overflow-y-auto scroll-mx-0"
+              >
+                <Menu onSignOut={signOut ?? (() => {})} />
+                <ItemList />
+              </div>
+            </div>
           </>
         )}
       </Authenticator>

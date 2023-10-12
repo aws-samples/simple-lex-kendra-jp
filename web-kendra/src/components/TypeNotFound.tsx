@@ -2,7 +2,7 @@ import React from 'react';
 
 function TypeNotFound() {
   return (
-    <div className="text-gray-600 w-1/2 p-4">
+    <div className="text-gray-600 p-4">
       <div className="text-md mb-8">見つかりませんでした</div>
       <div className="text-md mb-2">
         ヒント: 単語にスペースを入れて検索してみてください

@@ -2,7 +2,16 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as kendra from 'aws-cdk-lib/aws-kendra';
 import * as waf from 'aws-cdk-lib/aws-wafv2';
-import { KendraIndex, Auth, Api, Web, S3DataSource, CustomDataSource, Faq } from './constructs';
+import {
+  KendraIndex,
+  Auth,
+  Api,
+  Web,
+  S3DataSource,
+  CustomDataSource,
+  Faq,
+  Identity,
+} from './constructs';
 import { NagSuppressions } from 'cdk-nag';
 
 export interface SimpleKendraStackProps extends cdk.StackProps {
@@ -33,17 +42,25 @@ export class SimpleKendraStack extends cdk.Stack {
       index: kendraIndex.index,
     });
 
+    const identity = new Identity(this, 'Identity', {
+      dataSourceBucket: s3DataSource.bucket,
+      userPool: auth.userPool,
+      userPoolClient: auth.userPoolClient,
+    });
+
     const api = new Api(this, 'Api', {
       index: kendraIndex.index,
       userPool: auth.userPool,
+      identityPool: identity.identityPool,
     });
 
     const web = new Web(this, 'Web', {
       userPool: auth.userPool,
       userPoolClient: auth.userPoolClient,
-      dataSourceBucket: s3DataSource.bucket,
       webAclCloudFront: props.webAclCloudFront,
       api: api.api,
+      identityPool: identity.identityPool,
+      predictStreamFunction: api.predictStreamFunction,
     });
 
     // -----
@@ -59,7 +76,7 @@ export class SimpleKendraStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, 'IdentityPoolId', {
-      value: web.identityPool.identityPoolId,
+      value: identity.identityPool.identityPoolId,
     });
 
     new cdk.CfnOutput(this, 'KendraSampleFrontend', {
@@ -72,6 +89,10 @@ export class SimpleKendraStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'CognitoUserPoolClientId', {
       value: auth.userPoolClient.userPoolClientId,
+    });
+
+    new cdk.CfnOutput(this, 'PredictStreamFunctionArn', {
+      value: api.predictStreamFunction.functionArn,
     });
 
     this.index = kendraIndex.index;
