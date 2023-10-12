@@ -41,7 +41,7 @@ const app = new cdk.App();
 Aspects.of(app).add(new AwsSolutionsChecks());
 
 (async () => {
-  const webAclStack = new WebAclStack(app, 'SimpleKendraWebAcl', {
+  const webAclStack = new WebAclStack(app, 'webAcl', {
     crossRegionReferences: true,
     env: {
       region: 'us-east-1',
