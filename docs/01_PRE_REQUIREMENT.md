@@ -11,7 +11,7 @@
 まずは、このリポジトリを `git clone` して、npm パッケージのインストールを行います。ターミナルにて、以下のコマンドを実行してください。
 
 ```bash
-git clone https://github.com/aws-samples/simple-lex-kendra-jp
+git clone https://github.com/aws-samples/simple-lex-kendra-jp -b hands-on
 cd simple-lex-kendra-jp
 npm install -ws
 ```
