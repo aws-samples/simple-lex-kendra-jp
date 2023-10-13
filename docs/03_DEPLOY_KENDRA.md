@@ -160,7 +160,7 @@ export REACT_APP_PREDICT_STREAM_FUNCTION_ARN=<Predict Stream Function ARN>
 - 上記 `<...>` の値は `cdk deploy SimpleKendraStack` の出力を確認して適切な値に書き換えてください。
   - `<Kendra API Endpoint>` は `SimpleKendraStack.KendraApiEndpointxxxx = ...` の形式で出力された Endpoint に `kendra` の path を追加したものを設定。最終的に https://xxxxxxxxxx.execute-api.region.amazonaws.com/prod/kendra のような値になる。
   - `<Identity Pool ID>` は `SimpleKendraStack.IdentityPoolId = ...` の値
-  - `<Region>` は CDK でデプロイしたリージョン (例: ap-northeast-1)
+  - `<Region>` は CDK でデプロイしたリージョン (例: us-east-1)
   - `<Cognito User Pool ID>` は `SimpleKendraStack.CognitoUserPoolId = ...` の値
   - `<Cognito User Pool Client ID>` は `SimpleKendraStack.CognitoUserPoolClientId = ...` の値
   -   - `<Predict Stream Function ARN>` は `SimpleKendraStack.PredictStreamFunctionArn = ...` の値 (Streaming Response を行う Lambda 関数の ARN)

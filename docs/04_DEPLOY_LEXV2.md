@@ -55,7 +55,7 @@ export REACT_APP_REGION=<Region>
   - `<Identity Pool ID>` は `SimpleLexV2Stack.IdentityPoolId = ...` の値
   - `<Bot ID>` は `SimpleLexV2Stack.BotId = ...` の値
   - `<Bot Alias ID>` は `SimpleLexV2Stack.BotAliasId = ...` の値
-  - `<Region>` は CDK でデプロイしたリージョン (例: ap-northeast-1)
+  - `<Region>` は CDK でデプロイしたリージョン (例: us-east-1)
 - `cdk deploy SimpleLexV2Stack` の出力が確認できない場合は、再度デプロイコマンドを実行して出力を確認するか、[CloudFormation](https://console.aws.amazon.com/cloudformation) の SimpleLexV2Stack から Outputs タブで確認してください。
 
 続いて、3000 番ポートで待ち受けを開始します。
