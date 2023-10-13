@@ -52,7 +52,7 @@ Aspects.of(app).add(new AwsSolutionsChecks());
     webAclCloudFront: webAclStack.webAcl,
     crossRegionReferences: true,
     env: {
-      region: 'ap-northeast-1',
+      region: 'us-east-1',
     },
   });
 
@@ -65,7 +65,7 @@ Aspects.of(app).add(new AwsSolutionsChecks());
     webAclCloudFront: webAclStack.webAcl,
     crossRegionReferences: true,
     env: {
-      region: 'ap-northeast-1',
+      region: 'us-east-1',
     },
   });
 
