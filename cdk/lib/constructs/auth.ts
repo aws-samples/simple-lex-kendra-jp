@@ -15,8 +15,7 @@ export class Auth extends Construct {
     // Cognito UserPool を作成（サービスを利用するユーザアカウントのプール）
     const userPool = new cognito.UserPool(this, 'KendraUserPool', {
       advancedSecurityMode: cognito.AdvancedSecurityMode.ENFORCED,
-      // フロントエンドからユーザー登録を許可
-      selfSignUpEnabled: true,
+      selfSignUpEnabled: false,
       // メールアドレスをユーザー ID に設定
       signInAliases: {
         email: true,
