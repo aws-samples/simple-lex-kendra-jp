@@ -48,7 +48,7 @@ const useS3Downloader = (uri: string) => {
 
       const getObject = new GetObjectCommand({
         Bucket: bucket,
-        Key: key,
+        Key: decodeURIComponent(key),
         ResponseContentType: contentType,
       });
 
