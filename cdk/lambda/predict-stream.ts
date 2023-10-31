@@ -26,9 +26,9 @@ declare global {
 
 export const handler = awslambda.streamifyResponse(
   async (event, responseStream, context) => {
-    const client = new BedrockRuntimeClient({ region: 'us-east-1' });
+    const client = new BedrockRuntimeClient({ region: 'ap-northeast-1' });
     const command = new InvokeModelWithResponseStreamCommand({
-      modelId: 'anthropic.claude-v2',
+      modelId: 'anthropic.claude-instant-v1',
       body: JSON.stringify({
         max_tokens_to_sample: 3000,
         temperature: 0.7,
