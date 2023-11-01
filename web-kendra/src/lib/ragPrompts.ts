@@ -114,8 +114,8 @@ Human: 先ほど回答を作成するにあたって使用した <reference-info
 }]
 </reference-document-json>
 ただし JSON 以外の文字列は一切出力してはいけません。<reference-document-json></reference-document-json>  の xml のタグで囲ってもいけません。
-無機質に配列の中に入れた JSON だけを出力してください。例外はありません。
-参考にしたドキュメントが複数ある場合は、JSON を配列の中で複数出力してください。
+無機質に JSON の配列だけを出力してください。例外はありません。
+参考にしたドキュメントが複数ある場合は、JSON 配列の中に複数出力してください。
 Assistant: 
 `;
 };
