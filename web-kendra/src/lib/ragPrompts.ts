@@ -105,7 +105,7 @@ export const referencedDocumentsPrompt = (
 ) => {
   return `${basicPrompt(referenceItems, messages)}
 Human: 先ほど回答を作成するにあたって使用した <reference-information></reference-information> の xml タグに囲われた情報を出力してください。
-以下の <reference-document-json></reference-document-json> の xml タグに囲われた配列内のJSONフォーマットで出力してください。
+以下の <reference-document-json></reference-document-json> の xml タグで囲われた JSON フォーマットの配列で出力してください。
 <reference-document-json>
 [{
     "DocumentId": "回答の参考にした「参考ドキュメント」のDocumentIdを記載してください。"
