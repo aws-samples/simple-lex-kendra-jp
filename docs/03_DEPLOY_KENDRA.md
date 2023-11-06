@@ -63,9 +63,8 @@ SimpleKendraStack.KendraSampleFrontend = ...
 
 ## Amazon Bedrock の事前設定
 
-**このリポジトリでは、デフォルトでバージニア北部 (us-east-1) リージョンの Anthropic Claude モデルを利用する設定になっています。[Model access 画面](https://us-east-1.console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) を開き、「Edit」 → 「Anthropic Claude にチェック」 → 「Save changes」 と操作していただいて、バージニア北部リージョンにて Amazon Bedrock (基盤モデル: Claude) を利用できる状態にしてください。**
+**このリポジトリでは、デフォルトで東京 (ap-northeast-1) リージョンの Anthropic Claude Instanct モデルを利用する設定になっています。[Model access 画面](https://ap-northeast-1.console.aws.amazon.com/bedrock/home?region=ap-northeast-1#/modelaccess) を開き、「Edit」 → 「Anthropic Claude Instant にチェック」 → 「Save changes」 と操作していただいて、東京リージョンにて Amazon Bedrock (基盤モデル: Claude Instant) を利用できる状態にしてください。**
 
-現在 (2023/10/11) は **東京リージョン (ap-northeast-1) で、Claude の基盤モデルを利用することができません。**
 
 ## 動作確認
 

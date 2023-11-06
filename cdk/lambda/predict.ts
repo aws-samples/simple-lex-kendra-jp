@@ -10,10 +10,10 @@ export const handler = async (
   const prompt = JSON.parse(event.body!).prompt;
   const params = JSON.parse(event.body!).params;
 
-  const client = new BedrockRuntimeClient({ region: 'us-east-1' });
+  const client = new BedrockRuntimeClient({ region: 'ap-northeast-1' });
 
   const command = new InvokeModelCommand({
-    modelId: 'anthropic.claude-v2',
+    modelId: 'anthropic.claude-instant-v1',
     body: JSON.stringify({
       max_tokens_to_sample: 3000,
       temperature: 0.1,
