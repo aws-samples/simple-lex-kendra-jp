@@ -25,6 +25,7 @@ function App() {
   return (
     <>
       <Authenticator
+        hideSignUp={process.env.REACT_APP_SELF_SIGN_UP_ENABLED === "false"}
         components={{
           Header: () => {
             return (
