@@ -24,6 +24,17 @@ SimpleKendraStack.KendraIndexId = ...
 SimpleKendraStack.KendraSampleFrontend = ...
 ```
 
+## セルフサインアップの無効化
+
+このアプリケーションでは、デフォルトでセルフサインアップ機能が有効化されています。この機能を無効化したい場合、[cdk.json](../cdk/cdk.json) の `selfSignUpEnabled` を `false` に修正し、再度デプロイしてください。
+
+```json
+  "context": {
+    "selfSignUpEnabled": true, // true -> false で無効化
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "@aws-cdk/core:checkSecretUsage": true,
+```
+
 ## データの取り込み
 
 サンプルのサイトを開く前に、データの取り込みを手動で行います。

@@ -24,7 +24,8 @@ export class SimpleKendraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: SimpleKendraStackProps) {
     super(scope, id, props);
 
-    const auth = new Auth(this, 'Auth');
+    const selfSignUpEnabled: boolean = this.node.tryGetContext('selfSignUpEnabled') ?? true;
+    const auth = new Auth(this, 'Auth', { selfSignUpEnabled });
 
     const kendraIndex = new KendraIndex(this, 'KendraIndex', {
       userPool: auth.userPool,
@@ -61,6 +62,7 @@ export class SimpleKendraStack extends cdk.Stack {
       api: api.api,
       identityPool: identity.identityPool,
       predictStreamFunction: api.predictStreamFunction,
+      selfSignUpEnabled,
     });
 
     // -----
@@ -93,6 +95,10 @@ export class SimpleKendraStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'PredictStreamFunctionArn', {
       value: api.predictStreamFunction.functionArn,
+    });
+
+    new cdk.CfnOutput(this, 'SelfSignUpEnabled', {
+      value: selfSignUpEnabled.toString(),
     });
 
     this.index = kendraIndex.index;

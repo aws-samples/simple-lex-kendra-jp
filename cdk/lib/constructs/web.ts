@@ -17,6 +17,7 @@ export interface WebProps {
   webAclCloudFront: waf.CfnWebACL;
   api: agw.RestApi;
   predictStreamFunction: lambda.NodejsFunction;
+  selfSignUpEnabled: boolean;
 }
 
 export class Web extends Construct {
@@ -93,6 +94,8 @@ export class Web extends Construct {
         // StreamingResponse の Lambda 関数
         REACT_APP_PREDICT_STREAM_FUNCTION_ARN:
           props.predictStreamFunction.functionArn,
+        // サインアップ画面の有無
+        REACT_APP_SELF_SIGN_UP_ENABLED: props.selfSignUpEnabled.toString(),
       },
     });
 
