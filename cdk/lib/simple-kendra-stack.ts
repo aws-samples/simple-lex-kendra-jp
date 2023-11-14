@@ -24,7 +24,15 @@ export class SimpleKendraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: SimpleKendraStackProps) {
     super(scope, id, props);
 
-    const selfSignUpEnabled: boolean = this.node.tryGetContext('selfSignUpEnabled') ?? true;
+    const selfSignUpEnabled: boolean =
+      this.node.tryGetContext('selfSignUpEnabled');
+
+    if (typeof selfSignUpEnabled !== 'boolean') {
+      throw new Error(
+        'cdk.json の selfSignUpEnabled には true か false を設定してください。'
+      );
+    }
+
     const auth = new Auth(this, 'Auth', { selfSignUpEnabled });
 
     const kendraIndex = new KendraIndex(this, 'KendraIndex', {

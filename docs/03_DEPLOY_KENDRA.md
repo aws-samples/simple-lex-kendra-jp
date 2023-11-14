@@ -2,6 +2,20 @@
 
 > コマンドはルートディレクトリ [/simple-lex-kendra-jp](/) で実行してください。
 
+## セルフサインアップの設定
+
+セルフサインアップとは、ログイン画面からそのままアカウントを作成できる機能（受信可能なメールアドレスが必要）のことです。
+
+[cdk.json](../cdk/cdk.json) の `selfSignUpEnabled` に `true`（セルフサインアップ有効化）か `false`（セルフサインアップ無効化）を設定してください。**デフォルトではセルフサインアップを有効化しています。IP アドレス制限を行っていない場合は、URL を知っていれば誰でもログイン可能な状態になりますので、ご注意ください。**
+
+```json
+  "context": {
+    "selfSignUpEnabled": true, // <= true / false を設定する
+    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
+    "@aws-cdk/core:checkSecretUsage": true,
+```
+
+
 ## デプロイメント
 
 以下のコマンドを実行してください。途中でセキュリティに関連した変更について確認が求められますので、`y` を入力して Enter キーを押下してください。確認をスキップしたい場合は、デプロイコマンドに `--require-approval never` オプションを追加してください。(これに続くドキュメントでは、以下のコマンドを単に `cdk deploy SimpleKendraStack` と記述しています。)
@@ -22,17 +36,6 @@ SimpleKendraStack.ExportsOutputRefKendraIndex8794BFDF99DDBD96 = ...
 SimpleKendraStack.IdentityPoolId = ...
 SimpleKendraStack.KendraIndexId = ...
 SimpleKendraStack.KendraSampleFrontend = ...
-```
-
-## セルフサインアップの無効化
-
-このアプリケーションでは、デフォルトでセルフサインアップ機能が有効化されています。この機能を無効化したい場合、[cdk.json](../cdk/cdk.json) の `selfSignUpEnabled` を `false` に修正し、再度デプロイしてください。
-
-```json
-  "context": {
-    "selfSignUpEnabled": true, // true -> false で無効化
-    "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
-    "@aws-cdk/core:checkSecretUsage": true,
 ```
 
 ## データの取り込み
