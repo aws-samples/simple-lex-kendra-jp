@@ -10,7 +10,7 @@
 
 ```json
   "context": {
-    "selfSignUpEnabled": true,
+    "selfSignUpEnabled": true, // <= true / false を設定する
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
 ```
