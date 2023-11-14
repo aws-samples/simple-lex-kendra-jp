@@ -29,7 +29,7 @@ export class SimpleKendraStack extends cdk.Stack {
 
     if (typeof selfSignUpEnabled !== 'boolean') {
       throw new Error(
-        'cdk.json の selfSignUpEnabled には true か false を設定してください。ダブルクォートは不要です。'
+        'cdk.json の selfSignUpEnabled には true か false を設定してください。'
       );
     }
 

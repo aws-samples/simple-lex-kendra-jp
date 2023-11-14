@@ -25,8 +25,4 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
       - run: npm ci -w cdk
-      - name: 'エラー防止のために cdk.json に仮の値を設定'
-        run: |
-          cat ./cdk/cdk.json | jq '.context.selfSignUpEnabled |= true' > ./cdk/temp.json
-          mv ./cdk/temp.json ./cdk/cdk.json
       - run: npm exec -w cdk -- cdk synth
