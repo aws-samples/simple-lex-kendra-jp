@@ -4,13 +4,13 @@
 
 ## セルフサインアップの設定
 
-セルフサインアップとは、ログイン画面からそのままアカウントを作成できる機能（受信可能なメールアドレスが必要）のことです。**セルフサインアップを有効化すると、IP アドレス制限を行っていない場合は、URL を知っていれば誰でもログイン可能な状態になりますので、ご注意ください。**
+セルフサインアップとは、ログイン画面からそのままアカウントを作成できる機能（受信可能なメールアドレスが必要）のことです。
 
-[cdk.json](../cdk/cdk.json) の `selfSignUpEnabled` に `true`（セルフサインアップ有効化）か `false`（セルフサインアップ無効化）を設定してください。
+[cdk.json](../cdk/cdk.json) の `selfSignUpEnabled` に `true`（セルフサインアップ有効化）か `false`（セルフサインアップ無効化）を設定してください。**デフォルトではセルフサインアップを有効化しています。IP アドレス制限を行っていない場合は、URL を知っていれば誰でもログイン可能な状態になりますので、ご注意ください。**
 
 ```json
   "context": {
-    "selfSignUpEnabled": "true か false を設定してください（ダブルクォートは不要）",
+    "selfSignUpEnabled": true,
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
 ```
